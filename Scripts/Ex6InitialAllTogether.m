@@ -36,8 +36,8 @@ function Ex6InitialAllTogether(replicate)
     % MCMC Sampling
     fprintf('Setting up MCMC parameters...\n')
     %%sampler params here
-    SamplerParams.Samples=3000;
-    SamplerParams.Burnin=1000;
+    SamplerParams.Samples=30000;
+    SamplerParams.Burnin=10000;
     SamplerParams.AdjustmentLag=50; 
     SamplerParams.NotifyEveryXSamples=1000;
     SamplerParams.ScaleFactor=0.1;
@@ -64,10 +64,10 @@ function Ex6InitialAllTogether(replicate)
         mkdir(strcat(pathstr,'/../Results/'))
     end
     
-    save(strcat(pathstr,'/../Results/',name, '_' , replicate ,'_Siek.mat'))
+    save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) ,'_Siek.mat'))
 
     %% Perform the inference with missed events
-    clearvars -except filenames pathstr name SamplerParams generativeParams
+    clearvars -except filenames pathstr name SamplerParams generativeParams replicate
     model = FourState_6Param_AT();
     tres = 5e-5; %sampling resolution time in seconds
     tcrit = 9999; %treat as one long interval
@@ -105,6 +105,6 @@ function Ex6InitialAllTogether(replicate)
     t=rng;
     samples=MCMCsampler.cwSample(SamplerParams,model,data,proposalScheme,startParams);
     fprintf('Saving samples...\n')
-    save(strcat(pathstr,'/../Results/',name, '_' , replicate , '_MissedEvents.mat'))
+    save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) , '_MissedEvents.mat'))
     
 end

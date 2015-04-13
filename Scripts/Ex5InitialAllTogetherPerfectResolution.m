@@ -65,11 +65,11 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
         mkdir(strcat(pathstr,'/../Results/'))
     end
     
-    save(strcat(pathstr,'/../Results/',name, '_' , replicate ,'_Siek.mat'))
+    save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) ,'_Siek.mat'))
 
     %% Perform the inference with missed events
     fprintf('Experiment 2: Performing experiment with missed events...\n')
-    clearvars -except filenames pathstr name SamplerParams generativeParams
+    clearvars -except filenames pathstr name SamplerParams generativeParams replicate
 
     model = FourState_6Param_AT();
     tres = 0.0; %sampling resolution time in seconds
@@ -108,6 +108,6 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
     t=rng;
     samples=MCMCsampler.cwSample(SamplerParams,model,data,proposalScheme,startParams);
     fprintf('Saving samples for second experiment...\n')
-    save(strcat(pathstr,'/../Results/',name, '_' , replicate , '_MissedEvents.mat'))
+    save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) , '_MissedEvents.mat'))
 
 end
