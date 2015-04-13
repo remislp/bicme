@@ -60,6 +60,11 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
     samples=MCMCsampler.blockSample(SamplerParams,model,data,proposalScheme,startParams);
 
     fprintf('Saving MCMC samples from first experiment...\n')
+    
+    if ~isequal(exist(strcat(pathstr,'/../Results/'), 'dir'),7)
+        mkdir(strcat(pathstr,'/../Results/'))
+    end
+    
     save(strcat(pathstr,'/../Results/',name, '_' , replicate ,'_Siek.mat'))
 
     %% Perform the inference with missed events

@@ -59,6 +59,11 @@ function Ex6InitialAllTogether(replicate)
     samples=MCMCsampler.blockSample(SamplerParams,model,data,proposalScheme,startParams);
 
     fprintf('Saving MCMC samples...\n')
+    
+    if ~isequal(exist(strcat(pathstr,'/../Results/'), 'dir'),7)
+        mkdir(strcat(pathstr,'/../Results/'))
+    end
+    
     save(strcat(pathstr,'/../Results/',name, '_' , replicate ,'_Siek.mat'))
 
     %% Perform the inference with missed events
