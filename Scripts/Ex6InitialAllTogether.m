@@ -2,6 +2,9 @@
 function Ex6InitialAllTogether(replicate)
 
     fprintf('Performing experiment as per Siekmann 2012...\n')
+    rng('shuffle')
+    rng_setting=rng;    
+    fprintf('Using random number generator %s with seed %s...\n', rng_setting.Type, num2str(rng_setting.Seed))
     fprintf('Generating data...\n')
 
     %% Data Generation - perfect resolution
@@ -54,8 +57,6 @@ function Ex6InitialAllTogether(replicate)
 
     % Sample!
     fprintf('Running MCMC sampling...\n')
-    rng('shuffle')
-    t=rng;
     samples=MCMCsampler.blockSample(SamplerParams,model,data,proposalScheme,startParams);
 
     fprintf('Saving MCMC samples...\n')
@@ -67,7 +68,7 @@ function Ex6InitialAllTogether(replicate)
     save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) ,'_Siek.mat'))
 
     %% Perform the inference with missed events
-    clearvars -except filenames pathstr name SamplerParams generativeParams replicate
+    clearvars -except filenames pathstr name SamplerParams generativeParams replicate rng_setting
     model = FourState_6Param_AT();
     tres = 5e-5; %sampling resolution time in seconds
     tcrit = 9999; %treat as one long interval
@@ -101,8 +102,6 @@ function Ex6InitialAllTogether(replicate)
 
     % Sample!
     fprintf('Running MCMC sampling...\n')
-    rng('shuffle')
-    t=rng;
     samples=MCMCsampler.cwSample(SamplerParams,model,data,proposalScheme,startParams);
     fprintf('Saving samples...\n')
     save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) , '_MissedEvents.mat'))

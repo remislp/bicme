@@ -2,6 +2,10 @@ function Ex10PilotMCMCSyntheticReplicate(replicate)
 
     fprintf('Running the Pilot MCMC scheme on synthetically generated data... \n')
 
+    rng('shuffle')
+    rng_setting=rng;
+    fprintf('Using random number generator %s with seed %s...\n', rng_setting.Type, num2str(rng_setting.Seed))
+
     [pathstr,name,~] = fileparts(mfilename('fullpath'));
     sprintf('Generating data... \n')
 
@@ -38,14 +42,14 @@ function Ex10PilotMCMCSyntheticReplicate(replicate)
 
     save(strcat(pathstr,'/../Data/Synthetic/Ach', num2str(replicate), '.mat'),'tres','concs','tcrit','useChs','generativeParams','openIntervals','shutIntervals','bursts')
 
-    clearvars -except pathstr name replicate;
+    clearvars -except pathstr name replicate rng_setting;
 
     %% sampling parameters
     fprintf('Setting up MCMC sampling... \n')
     model = SevenState_10Param_AT();
 
-    SamplerParams.Samples=1000;
-    SamplerParams.Burnin=500;
+    SamplerParams.Samples=10000;
+    SamplerParams.Burnin=5000;
     SamplerParams.AdjustmentLag=50; 
     SamplerParams.NotifyEveryXSamples=1000;
     SamplerParams.ScaleFactor=0.1;
@@ -65,8 +69,6 @@ function Ex10PilotMCMCSyntheticReplicate(replicate)
 
     %% Sample!
     fprintf('Running up MCMC sampling... \n')
-    rng('shuffle')
-    t=rng;
     samples=MCMCsampler.cwSample(SamplerParams,model,data,proposalScheme,startParams');
 
     fprintf('Saving results... \n')

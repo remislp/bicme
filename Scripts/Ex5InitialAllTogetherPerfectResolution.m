@@ -1,5 +1,8 @@
 %% Script to compare the Siekmann likelihood with missed events with the same data
 function Ex5InitialAllTogetherPerfectResolution(replicate)
+    rng('shuffle')
+    rng_setting=rng;
+    fprintf('Using random number generator %s with seed %s...\n', rng_setting.Type, num2str(rng_setting.Seed))
 
     fprintf('Generating data...\n')
     %% Data Generation - perfect resolution
@@ -55,8 +58,6 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
 
     % Sample!
     fprintf('Running MCMC sampling for first experiment...\n')
-    rng('shuffle')
-    t=rng;
     samples=MCMCsampler.blockSample(SamplerParams,model,data,proposalScheme,startParams);
 
     fprintf('Saving MCMC samples from first experiment...\n')
@@ -69,7 +70,7 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
 
     %% Perform the inference with missed events
     fprintf('Experiment 2: Performing experiment with missed events...\n')
-    clearvars -except filenames pathstr name SamplerParams generativeParams replicate
+    clearvars -except filenames pathstr name SamplerParams generativeParams replicate rng_setting
 
     model = FourState_6Param_AT();
     tres = 0.0; %sampling resolution time in seconds
@@ -104,8 +105,8 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
 
     % Sample!
     fprintf('Performing MCMC sampling for second experiment...\n')
-    rng('shuffle')
-    t=rng;
+    
+    
     samples=MCMCsampler.cwSample(SamplerParams,model,data,proposalScheme,startParams);
     fprintf('Saving samples for second experiment...\n')
     save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) , '_MissedEvents.mat'))
