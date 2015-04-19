@@ -66,7 +66,7 @@ classdef FourState_6Param_AT < ExactIonModel
             end
             p = 30;
             Q = FourState_6Param_AT.generateQ(params);
-            logPrior = trace(Q)/p;
+            logPrior = trace(Q/1000)/p; %adjust for sec->msec
         end
         
         function derivLogPrior = calcDerivLogPrior(params)
