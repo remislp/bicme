@@ -1,4 +1,4 @@
-classdef SevenState_13Param_QET < ExactTensorIonModel
+classdef SevenState_13Param_QET < ExactIonModel
     %TwoStateExactIonModel with uniform priors and 
     %overridden metric tensor
        

@@ -2,7 +2,6 @@
 function Ex6InitialAllTogether(replicate)
 
     fprintf('Performing experiment as per Siekmann 2012...\n')
-    rng('shuffle')
     rng_setting=rng;    
     fprintf('Using random number generator %s with seed %s...\n', rng_setting.Type, num2str(rng_setting.Seed))
     fprintf('Generating data...\n')

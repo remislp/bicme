@@ -2,7 +2,6 @@ function Ex10PilotMCMCSyntheticReplicate(replicate)
 
     fprintf('Running the Pilot MCMC scheme on synthetically generated data... \n')
 
-    rng('shuffle')
     rng_setting=rng;
     fprintf('Using random number generator %s with seed %s...\n', rng_setting.Type, num2str(rng_setting.Seed))
 

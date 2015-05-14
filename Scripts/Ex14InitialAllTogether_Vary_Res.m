@@ -1,9 +1,12 @@
 %% Script to compare the Siekmann likelihood with missed events with the same data
-function Ex5InitialAllTogetherPerfectResolution(replicate)
-    rng_setting=rng;
-    fprintf('Using random number generator %s with seed %s...\n', rng_setting.Type, num2str(rng_setting.Seed))
+function Ex14InitialAllTogether_Vary_Res(replicate,data_tres)
 
-    fprintf('Generating data...\n')
+    fprintf('Performing experiment as per Siekmann 2012...\n')
+    rng('shuffle')
+    rng_setting=rng;    
+    fprintf('Using random number generator %s with seed %s...\n', rng_setting.Type, num2str(rng_setting.Seed))
+    fprintf('Generating data with resolution %.4f ms...\n',data_tres)
+
     %% Data Generation - perfect resolution
     [pathstr,name,~] = fileparts(mfilename('fullpath'));
     intervals = 18000; %about 100,000 data points as per Siekmann 2012
@@ -11,20 +14,19 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
     generativeParams=[3.5; 0.1; 7; 0.4; 0.05; 0.5]; 
 
     concs = 1; %agonist concentration is irrelevent
-    tres = 0.05; %sampling resolution time
+    tres = 0.05; %sampling time
+    %data_tres = 0.025; %resolution time of the data
     tcrit = 9999; %treat as one long interval
     filenames = generateData(model,concs,intervals,generativeParams);
 
     %parse these data files
     bursts=cell(1,length(concs));
-    openIntervals = cell(1,length(concs));
-    shutIntervals = cell(1,length(concs));
     for i=1:length(concs)
         [~,intervaldata]=DataController.read_scn_file(filenames{i});
         intervaldata.intervals=intervaldata.intervals/1000; %intervals are factored up by 1,000 relative to time scale
 
-        resolvedData= RecordingManipulator.imposeResolution(intervaldata, 0.0); %impose with perfect resolution
-        rawbursts = RecordingManipulator.getBursts(resolvedData , tcrit(1));
+        resolvedData= RecordingManipulator.imposeResolution(intervaldata,data_tres);
+        rawbursts = RecordingManipulator.getBursts(resolvedData,tcrit(i));
         stripped_bursts = [rawbursts.withinburst];
         bursts{i} = {stripped_bursts.intervals};
     end
@@ -33,11 +35,11 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
     data.concs = concs;
     data.tres = tres; %in msec
     data.tcrit = tcrit; %treat all data as one 'burst' interval
+    data.data_tres = data_tres;
 
     %% Perform the Siekmann analysis
     % MCMC Sampling
-    fprintf('Experiment 1: Performing experiment as per Siekmann 2012...\n')
-    fprintf('Setting up MCMC parameters for first experiment...\n')
+    fprintf('Setting up MCMC parameters...\n')
     %%sampler params here
     SamplerParams.Samples=30000;
     SamplerParams.Burnin=10000;
@@ -56,10 +58,10 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
     startParams = [1; 0.1; 1; 0.4; 0.05; 0.5];
 
     % Sample!
-    fprintf('Running MCMC sampling for first experiment...\n')
+    fprintf('Running MCMC sampling...\n')
     samples=MCMCsampler.blockSample(SamplerParams,model,data,proposalScheme,startParams);
 
-    fprintf('Saving MCMC samples from first experiment...\n')
+    fprintf('Saving MCMC samples...\n')
     
     if ~isequal(exist(strcat(pathstr,'/../Results/'), 'dir'),7)
         mkdir(strcat(pathstr,'/../Results/'))
@@ -68,22 +70,21 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
     save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) ,'_Siek.mat'))
 
     %% Perform the inference with missed events
-    fprintf('Experiment 2: Performing experiment with missed events...\n')
-    clearvars -except filenames pathstr name SamplerParams generativeParams replicate rng_setting
-
+    clearvars -except filenames pathstr name SamplerParams generativeParams replicate rng_setting data_tres
     model = FourState_6Param_AT();
-    tres = 0.0; %sampling resolution time in seconds
+    MSEC = 1000; %convert to seconds
+    tres = data_tres/MSEC; %sampling resolution time in seconds
+    data_tres = data_tres/MSEC; %resolution time of the data in seconds
     tcrit = 9999; %treat as one long interval
     concs = 1; %agonist concentration is irrelevent
-    MSEC = 1000; %need to adjust data into seconds
-
+    
     %parse these data files
     bursts=cell(1,length(concs));
     for i=1:length(concs)
         [~,intervaldata]=DataController.read_scn_file(filenames{i});
-        intervaldata.intervals=intervaldata.intervals/(MSEC^2); %intervals in seconds
+        intervaldata.intervals=intervaldata.intervals/(MSEC^2); %convert intervals to seconds
 
-        resolvedData= RecordingManipulator.imposeResolution(intervaldata,0.0);
+        resolvedData= RecordingManipulator.imposeResolution(intervaldata,data_tres);
         rawbursts = RecordingManipulator.getBursts(resolvedData,tcrit(i));
         stripped_bursts = [rawbursts.withinburst];
         bursts{i} = {stripped_bursts.intervals};
@@ -91,8 +92,9 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
 
     data.bursts = bursts;
     data.concs = concs;
-    data.tres = tres; %in msec
+    data.tres = tres; %in seconds
     data.tcrit = tcrit; %treat all data as one 'burst' interval
+    data.data_tres = data_tres;
     data.useChs = 0;
 
     % Set up the sampler
@@ -103,11 +105,9 @@ function Ex5InitialAllTogetherPerfectResolution(replicate)
     startParams = [1; 0.1; 1; 0.4; 0.05; 0.5] * MSEC;
 
     % Sample!
-    fprintf('Performing MCMC sampling for second experiment...\n')
-    
-    
+    fprintf('Running MCMC sampling...\n')
     samples=MCMCsampler.cwSample(SamplerParams,model,data,proposalScheme,startParams);
-    fprintf('Saving samples for second experiment...\n')
+    fprintf('Saving samples...\n')
     save(strcat(pathstr,'/../Results/',name, '_' , num2str(replicate) , '_MissedEvents.mat'))
-
+    
 end
