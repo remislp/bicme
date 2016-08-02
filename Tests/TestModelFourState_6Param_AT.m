@@ -75,12 +75,12 @@ classdef TestModelFourState_6Param_AT < matlab.unittest.TestCase
         end
         
         function testCalcLogPosterior(testCase)
-            testCase.verifyEqual(testCase.model.calcLogPosterior(testCase.params,testCase.data),132197.458563601,'AbsTol', 1e-10)
+            testCase.verifyEqual(testCase.model.calcLogPosterior(testCase.params,testCase.data),132582.073563601,'AbsTol', 1e-10)
         end
           
         function testCalcLogPrior(testCase)
-            testCase.verifyEqual(testCase.model.calcLogPrior(testCase.params),-385,'AbsTol', 1e-10)
-            testCase.verifyEqual(testCase.model.calcLogPrior([-1; -1;-1; -1; -1; -1 ;-1; -1; -1;-1]),0.2)
+            testCase.verifyEqual(testCase.model.calcLogPrior(testCase.params),-0.385,'AbsTol', 1e-10)
+            testCase.verifyEqual(testCase.model.calcLogPrior([-1; -1;-1; -1; -1; -1 ;-1; -1; -1;-1]),2e-4)
         end
     end
     

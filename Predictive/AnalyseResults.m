@@ -26,9 +26,11 @@ end
 figure;
 for i=1:param_count
     subplot(length,width,i)
-    hist(samples.params(burnin:end,i),50);
+    %hist(samples.params(burnin:end,i),50);
     %[f,x]=hist(samples.params(burnin:end,i),100);
     %bar(x,f/trapz(x,f));
+    [f,xi] = ksdensity(samples.params(burnin:end,i));
+    plot(xi,f);
     hold on;
     if nVarargs == 2
         plot(trueParams(i),0,'rp');

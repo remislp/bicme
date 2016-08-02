@@ -24,7 +24,7 @@ classdef TestSampler < matlab.unittest.TestCase
             testCase.normal.SamplerParams.ScaleFactor=0.5;            
             
             %blr test case parameters
-            testCase.blr.model = LogisticRegressionModel();
+            testCase.blr.model = LogisticRegressionModel(15);
             
             %Australian credit data 
             a=load(strcat(pathstr , '/Data/LoigRegData.mat'));

@@ -33,26 +33,34 @@ classdef RecordingManipulator
             %shut intervals after open intervals (isopen=0) within the
             %range 
             
+            %we need both the preceeding and succeeding intervals to be
+            %good so find the indices of usable intervals
+            good_intervals = find(res_ts.status ~= 8);
+            
             if isopen
+                %open intervals after a shut interval range
                 %get shut intervals that match the range
-                shut_periods = intersect(find(res_ts.intervals>=range(1) & res_ts.intervals<range(2)),find(res_ts.amplitudes==RecordingManipulator.CLOSED_AMP));
-
+                shut_periods = intersect(find(res_ts.intervals>=range(1) & res_ts.intervals<range(2) & res_ts.status ~= 8),find(res_ts.amplitudes==RecordingManipulator.CLOSED_AMP) );
                 %if the last index is going to be greater than the length of the
                 %recording then drop it
                 
                 if shut_periods(end) == res_ts.points
-                    periods = res_ts.getIntervalAt(shut_periods(1:end-1)+1);
+                    required_open_indices = shut_periods(1:end-1)+1;
                 else
-                    periods = res_ts.getIntervalAt(shut_periods+1);
+                    required_open_indices = shut_periods+1;
                 end
+                good_open_indices = intersect(required_open_indices,good_intervals);
+                periods = res_ts.getIntervalAt(good_open_indices);
                 
             else
-                open_periods = intersect(find(res_ts.intervals>=range(1) & res_ts.intervals<range(2)),find(res_ts.amplitudes==RecordingManipulator.OPEN_AMP));
+                open_periods = intersect(find(res_ts.intervals>=range(1) & res_ts.intervals<range(2) & res_ts.status ~= 8),find(res_ts.amplitudes==RecordingManipulator.OPEN_AMP));
                 if open_periods(end) == res_ts.points
-                    periods = res_ts.getIntervalAt(open_periods(1:end-1)+1);
+                    required_shut_periods = open_periods(1:end-1)+1;
                 else
-                    periods = res_ts.getIntervalAt(open_periods+1);
+                    required_shut_periods = open_periods + 1;
                 end
+                good_open_indices = intersect(required_shut_periods,good_intervals);
+                periods = res_ts.getIntervalAt(good_open_indices);
             end
             
             

@@ -2,7 +2,7 @@ classdef RosenthalAdaptiveSampler < Sampler
     %From Rosenthal 2006 technical report
    
     properties(Constant)
-        StartAdaption = 20;
+        StartAdaption = 100;
     end
     
     methods(Static)

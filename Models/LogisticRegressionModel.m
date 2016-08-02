@@ -10,8 +10,8 @@ classdef LogisticRegressionModel < BayesianModel
     
     methods(Access=public) 
         
-    	function obj = LogisticRegressionModel()
-            obj.k = 15;
+    	function obj = LogisticRegressionModel(k)
+            obj.k = k;
         end
     
     end
@@ -61,12 +61,17 @@ classdef LogisticRegressionModel < BayesianModel
         
         function logPrior = calcLogPrior(params)
             logPrior = log(mvnpdf(params',zeros(1,length(params)),repmat(LogisticRegressionModel.SIGMA,1,length(params))));   
+            %Chalf = sqrtm(eye(length(params)) * LogisticRegressionModel.SIGMA);
+            %sigma = 1;
+            %logPrior = (-1/(2*sigma))*(Chalf\params)'*(Chalf\params);
+            %disp(logPrior);
         end
         
         function derivLogPrior = calcDerivLogPrior(params)
             derivLogPrior = -(params./LogisticRegressionModel.SIGMA);
         end        
     end
+    
     
     
 end
