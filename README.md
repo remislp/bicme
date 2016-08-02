@@ -41,8 +41,8 @@ All the plotted eps output is produced in `Results/Figures/Paper`
 	
 # third party acknowledgements
 
-## I have vectorised a version of John D'Errico's `Hessian` calculation available on [Mathworks](http://uk.mathworks.com/matlabcentral/fileexchange/13490-adaptive-robust-numerical-differentiation/content/DERIVESTsuite/hessian.m) to calculate the Hessian numerically using finite differences.
-## I have modified plotting functions described in this presentation[http://www.gatsby.ucl.ac.uk/~turner/TeaTalks/matlabFigs/matlabFig.pdf] in order to produce reasonable MATLAB figures.
+I have vectorised a version of John D'Errico's `Hessian` calculation available on [Mathworks](http://uk.mathworks.com/matlabcentral/fileexchange/13490-adaptive-robust-numerical-differentiation/content/DERIVESTsuite/hessian.m) to calculate the Hessian numerically using finite differences.
+I have modified plotting functions described in this presentation[http://www.gatsby.ucl.ac.uk/~turner/TeaTalks/matlabFigs/matlabFig.pdf] in order to produce reasonable MATLAB figures.
 
 
 
