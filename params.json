@@ -1,0 +1,6 @@
+{
+  "name": "Bicme",
+  "tagline": "Bayesian Inference for Ion-channel models with exact missed event correction",
+  "body": "### Bayesian Inference for ion-channel modelling\r\n\r\nThis is the code from the recently published paper in Biophysical Journal, \"Bayesian statistical inference in ion-channel models with exact missed event correction\". The repo is currently private and a release branch for the paper will be made available very shortly.\r\n\r\nIn the meantime if you have interest in the code please contact michael.epstein.10 at ucl.ac.uk",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
