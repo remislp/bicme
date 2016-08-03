@@ -19,11 +19,7 @@ function RunExperiment(experimentNo,replicateNo)
             Experiment3PilotMWGExperimentalMCMC(replicateNo);
             sprintf('Running experiment for Figure 8 - Adaptive MCMC on Real Data');
             Experiment3AdaptiveExperimentalMCMC(replicateNo);
-        case 4
-            ExperimentGenerateSyntheticDataset(replicateNo,'dependent');
-            Experiment4PilotMWGSyntheticMCMC(replicateNo);
-            Experiment4AdaptiveSyntheticMCMC(replicateNo);
         otherwise 
-            error('Experiment unknown - please choose one of 1,2,3,4')     
+            error('Experiment unknown - please choose one of 1, 2, 3')     
     end
 end

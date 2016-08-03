@@ -94,5 +94,6 @@ function Figure10a()
     set(gca,'XTick',xtickRefs{1})
     
     Plot1By1(fig2,1,[pathname '/../../Results/Figures/Paper/Figure10a_SiekmannParamDensities'],fontSizeTicks,fontSizeAxis, LEFTBORDER, [0, 0, 3.25, 2])
-
+    close(fig)
+    close(fig2)
 end

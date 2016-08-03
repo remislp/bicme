@@ -1,16 +1,20 @@
-function GenerateFigures(experimentNo, replicateNo)
+function GenerateFigures(experimentNo, replicateNo, removePreviousFigures)
 
 %replicateNo=10 used for paper experiments;
 [pathname,~,~] = fileparts(mfilename('fullpath'));
 
 resultsDir = [pathname , '/../../Results/Figures/Paper/'];
-if (rmdir(resultsDir,'s') == 0)
-    fprintf('Results directory will be created...\n')
-else
-    fprintf('Removing previous results...\n')
-end
 
-mkdir(resultsDir)
+if (removePreviousFigures)
+    if (rmdir(resultsDir,'s') == 0)
+        fprintf('Results directory will be created...\n')
+    elseif (removePreviousFigures) 
+        fprintf('Removing previous results...\n')
+    end
+    mkdir(resultsDir)
+else
+    fprintf('Previous results NOT removed...\n')
+end
 
 switch experimentNo
     case 1

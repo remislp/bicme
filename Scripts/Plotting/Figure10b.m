@@ -121,10 +121,7 @@ function Figure10b()
     xlim(xlimits(:))
     set(gca,'XTick',xtickRefs{1})
     
-    
-    %print(fig,'-depsc','-painters',[pathname '/../../Results/Figures/HJCTracePlot.eps'],'-loose'); 
-    %close(fig);
+    close(fig);
     Plot1By1(fig2,1,[pathname '/../../Results/Figures/Paper/Figure10b_HJCParamDensities'],fontSizeTicks,fontSizeAxis, LEFTBORDER, [0, 0, 3.25, 2])
-    %print(fig2,'-depsc','-painters',[pathname '/../../Results/Figures/HJCParamDensities.eps'],'-loose'); 
-    %close(fig2);
+    close(fig2);
 end

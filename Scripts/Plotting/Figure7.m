@@ -1,4 +1,4 @@
-%pilot charts to show A: convergence and B: inefficient sampling
+
 function Figure7(replicate)
 
     [pathname,~,~] = fileparts(mfilename('fullpath'));
@@ -96,5 +96,5 @@ function Figure7(replicate)
     end
     
     PlotNByM(fig,2,5,1,10,[pathname '/../../Results/Figures/Paper/Figure7_RealDataParameterDistibutions'])
-
+	close(fig)
 end

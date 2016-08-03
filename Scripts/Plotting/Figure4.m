@@ -90,4 +90,5 @@ function Figure4(replicate)
     end
     %(fig,N,M,hastitle,axisFontSize,varargin)
     PlotNByM(fig,2,5,1,10,[pathname '/../../Results/Figures/Paper/Figure4_SyntheticDataParameterDistributions'])
+    close(fig)
 end
