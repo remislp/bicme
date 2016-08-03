@@ -2,6 +2,8 @@
 
 This is code used in our recent paper **"Bayesian Statistical Inference in Ion-Channel Models with Exact Missed Event Correction"** that appeared in *Biophysical Journal in 2016* (doi: 10.1016/j.bpj.2016.04.053), available [here](http://www.cell.com/biophysj/fulltext/S0006-3495(16)30450-7)
 
+Please feel free to contact me at my email address listed on my "miepstei" git profile with comments and feedback.
+
 # Prequisites
 
 1. A C++11 compiler installed - required for steps 2 and 4.
@@ -43,7 +45,7 @@ Instead, each set of experiments can be run individually. This requires setting 
 All the plotted eps output is produced in `Results/Figures/Paper`. Setting `removeFigures = 1` removes the output from the directory.
 All the MCMC output is in `Results`.
 	
-# third party acknowledgements
+# Third party acknowledgements
 
 I have vectorised a version of John D'Errico's `Hessian` calculation available on [Mathworks](http://uk.mathworks.com/matlabcentral/fileexchange/13490-adaptive-robust-numerical-differentiation/content/DERIVESTsuite/hessian.m) to calculate the Hessian numerically using finite differences.
 I have modified plotting functions described in this [UCL presentation](http://www.gatsby.ucl.ac.uk/~turner/TeaTalks/matlabFigs/matlabFig.pdf) in order to produce reasonable MATLAB figures.
