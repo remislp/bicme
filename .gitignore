@@ -1,2 +1,4 @@
 C/mex/*
 .DS_Store
+nbproject/
+*.pyc
