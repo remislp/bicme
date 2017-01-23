@@ -33,36 +33,48 @@ class Sampler(object):
         self.data = data
         self.proposal = proposal
         self.verbose = verbose
+        print('Sampler initialised...')
     
     def sample(self, theta):
         """
         theta - starting values for the parameters
         """
 
-        # store every M'th sample in S
-        #S = np.zeros((len(theta) + 1, 1 + self.N / self.M))
-        # store every sample
         S = np.zeros((len(theta) + 1, self.N))
-        ll0 = self.model(theta, self.data)
-        #S[:,0] = np.append(theta, ll0)
+        ll0 = self.model(theta, *self.data)
         local_theta = theta.copy()
         
         for i in range(self.N):
             # Generate candidate state
             p = self.proposal(local_theta)
-            #p = local_theta + a * (2 * np.random.rand(len(local_theta)) - 1)
-            # accept / reject new state
+             # accept / reject new state
             if p.all() > 0:
-                llp = self.model(p, self.data)
+                try:
+                    llp = self.model(p, *self.data)
+                except:
+                    llp = inf
                 alpha = min(1, np.exp(llp-ll0))
                 if random.random() < alpha:
                     local_theta, ll0 = p, llp
-
+                    
             # every M print job progress in percentage
             if self.verbose and i % self.M == 0:
                 if self.verbose: print (100 * (self.M + i) / float(self.N), '%')
-            
             # store sample
-            S[ : , i] = np.append(local_theta, ll0)
-        return S, local_theta, ll0
+            S[ : , i] = np.append(np.exp(local_theta), ll0)
+        return S
 
+class MWGSampler(Sampler):
+    """
+    Multiplicative Metropolis_within_Gibbs sampler with scaling during burn-in.
+    """
+    def __init__(self, samples_draw=100000, notify_every=100,
+                 model=None, data=None, proposal=None, verbose=False):
+        Sampler.__init__(self, samples_draw, notify_every,
+                         model, data, proposal, verbose)
+                         
+    def cw_sample(self):
+        """
+        Samples parameters one by one to improwe mixing.
+        """
+        pass
