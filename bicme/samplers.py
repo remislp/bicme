@@ -41,7 +41,8 @@ class Sampler(object):
         """
 
         S = np.zeros((len(theta) + 1, self.N))
-        ll0 = self.model(theta, *self.data)
+        #ll0 = self.model(theta, *self.data)
+        ll0 = self.model(theta, self.data)
         local_theta = theta.copy()
         
         for i in range(self.N):
@@ -50,9 +51,10 @@ class Sampler(object):
              # accept / reject new state
             if p.all() > 0:
                 try:
-                    llp = self.model(p, *self.data)
+                    #llp = self.model(p, *self.data)
+                    llp = self.model(p, self.data)
                 except:
-                    llp = inf
+                    llp = float('inf')
                 alpha = min(1, np.exp(llp-ll0))
                 if random.random() < alpha:
                     local_theta, ll0 = p, llp
@@ -61,7 +63,8 @@ class Sampler(object):
             if self.verbose and i % self.M == 0:
                 if self.verbose: print (100 * (self.M + i) / float(self.N), '%')
             # store sample
-            S[ : , i] = np.append(np.exp(local_theta), ll0)
+            #S[ : , i] = np.append(np.exp(local_theta), ll0)
+            S[ : , i] = np.append(local_theta, ll0)
         return S
 
 class MWGSampler(Sampler):

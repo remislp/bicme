@@ -1,13 +1,11 @@
 from math import pow
 from scipy.special import gammaln
 import numpy as np
-import pylab as plt
 
 def popln(n1, r, b, T):
     
     """
     Calculate blowfly population size at each time moment. 
-
     Parameters
     ----------
     n1 : integer
@@ -57,41 +55,7 @@ def LogLkd(vec, y):
     llik = np.sum(y * np.log(n) - n - gammaln(y + 1))
     return llik
 
-def proposal_func(theta):
+def proposal_fly(theta):
     # MCMC proposed jump in parameters
     scale = np.array([10, 0.1, 0.0001])
     return theta + scale * (2 * np.random.rand(len(theta)) - 1)
-
-def display_results(S, burnin=0, labels=None):
-    """
-    
-    """
-    r = len(S)
-    count = 1
-    for i in range(r):
-        plt.subplot(r, 2, count)
-        plt.plot(S[i])
-        count += 1
-        #plt.ylabel('n1')
-        plt.subplot(r, 2, count)
-        plt.hist(S[i, burnin:])
-        count += 1
-    plt.show()
-
-# Data.
-y = np.array([1225, 825, 4752, 774, 3547, 1549])
-
-# X0- initial guesses (starting parameters)
-X0 = np.array([y[0], 2, 0.0005])
-
-
-# Sampler parameters
-N, M = 100000, 1000
-from samplers import Sampler
-rw_sampler = Sampler(samples_draw=N, notify_every=M, 
-                     model=LogLkd, data=y, proposal=proposal_func, 
-                     verbose=True)
-S, X, last_func_val = rw_sampler.sample(X0)
-display_results(S, burnin=10000)
-
-

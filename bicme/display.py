@@ -1,12 +1,14 @@
 import numpy as np
 import pylab as plt
 
-def display_results(S, burnin=0, labels=None):
+def quick_display(S, burnin=0, labels=None):
     """    
     """
     
     Lmax = S[-1].max()
+    print ('Lmax=', Lmax)
     imax = np.where(S[-1] == S[-1].max())[0][0]
+    print('pars=', S[:, imax])
     count = 1
     r = len(S)
     for i in range(r):
@@ -19,8 +21,4 @@ def display_results(S, burnin=0, labels=None):
         plt.axvline(x=S[i, imax], color='r')
         count += 1
     plt.show()
-
-S = np.loadtxt('AChR_MCMC.csv', delimiter=',')
-display_results(S, burnin=5000)
-
 
