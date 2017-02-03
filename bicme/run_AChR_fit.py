@@ -6,8 +6,9 @@ import numpy as np
 from dcpyps.samples import samples
 from dcpyps import dataset, mechanism
    
-def dcprogslik(x, lik, m, c):
-    m.theta_unsqueeze(np.exp(x))
+def dcprogslik(x, data):
+    lik, m, c = data
+    m.theta_unsqueeze(x)
     l = 0
     for i in range(len(c)):
         m.set_eff('c', c[i])
@@ -67,7 +68,7 @@ bursts = rec.bursts.intervals()
 # Initiate likelihood function with bursts, number of open states,
 # temporal resolution and critical time interval
 likelihood = Log10Likelihood(bursts, mec.kA, tr, tc)
-lik = dcprogslik(np.log(theta), *([likelihood], mec, [conc]))
+lik = dcprogslik(theta, ([likelihood], mec, [conc]))
 print ("\nInitial likelihood = {0:.6f}".format(lik))
 
 # Sampler parameters
@@ -78,7 +79,7 @@ rw_sampler = MWGSampler(samples_draw=N, notify_every=M,
                      proposal=proposal_func, verbose=True)
 
 start = time.clock()
-S = rw_sampler.sample(np.log(theta))
+S = rw_sampler.sample(theta)
 t = time.clock() - start
 print ('\nCPU time in sampler =', t)
 
