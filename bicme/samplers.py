@@ -1,4 +1,5 @@
-import random
+from math import log
+from random import random
 import numpy as np
 
 class Sampler(object):
@@ -56,7 +57,7 @@ class Sampler(object):
                 except:
                     llp = float('inf')
                 alpha = min(1, np.exp(llp-ll0))
-                if random.random() < alpha:
+                if random() < alpha:
                     local_theta, ll0 = p, llp
                     
             # every M print job progress in percentage
@@ -67,7 +68,7 @@ class Sampler(object):
             S[ : , i] = np.append(local_theta, ll0)
         return S
 
-class MWGSampler(Sampler):
+class MWGSampler(object):
     """
     Multiplicative Metropolis_within_Gibbs sampler with scaling during burn-in.
     """
@@ -90,62 +91,55 @@ class MWGSampler(Sampler):
         self.scale = 0.1
         print('Sampler initialised...')
         
-    def __prepare_sampling_containers(self):
-        self.scale_factors = np.ones(self.N)
-        self.all_samples = np.zeros((self.N, self.k))
-        self.all_proposals = np.zeros((self.N, self.k))
-        self.acceptances = np.zeros(self.N)
-        self.posteriors = np.zeros(self.N)
-                         
-    def sample_block_wise(self, theta):
+    def sample(self, theta):
         """
         Samples parameters one by one to improwe mixing.
         """
         
         self.k = len(theta)
-        self.__prepare_sampling_containers()
-        scale_factor = 1
+        self.scale_factors = np.ones((self.N * self.k, self.k))
+        self.all_samples = np.zeros((self.N * self.k, self.k+1))
+        self.all_proposals = np.zeros((self.N * self.k, self.k))
+        self.acceptances = np.zeros(self.N * self.k)
+        
+        scale_factor = np.ones(self.k)
         L0 = self.model(theta, self.data)
         theta0 = theta.copy()
         
         # Sampling loop
         for i in range(self.N):
-            # Get proposal
-            alpha, theta_p, L_p = self.proposal(self.model, self.data,
-                                                theta0, L0, scale_factor)
-            self.proposals[i] = theta_p
-            
-            # Check acceptance
-            if alpha == 0 or alpha > random.random():
-                self.acceptances[i] = 1
-                self.posteriors[i] = L_p
-                L0 = L_p
-                self.all_samples[i] = theta_p
-                theta0 = theta_p
-            else:
-                self.all_samples[i] = theta0
-                self.posteriors[i] = L0
-            
-            # Tune sampler step
-            self.scale_factors[i] = scale_factor
-            if i < self.B and i >= self.lag:
-                if i % self.lag == 0:
-                    acceptance_proportion = (np.sum(
-                        self.acceptances[(i-self.lag) : ]) / self.lag)
-                    if acceptance_proportion < self.acceptance_limits[0]:
-                        scale_factor *= 1 - self.scale
-                        print("Acceptance: {0:d}; Scale factor decreased to",
-                            format(acceptance_proportion) +
-                            " {0:.3f} at iteration {1:d}".
-                            format(scale_factor, i))
-                    elif acceptance_proportion > self.acceptance_limits[1]:
-                        scale_factor *= 1 + self.scale
-                        print("Acceptance: {0:d}; Scale factor increased to",
-                            format(acceptance_proportion) +
-                            " {0:.3f} at iteration {1:d}".
-                            format(scale_factor, i))
-            
-            if i % self.N == 0 and self.verbose:
-                print ("{0:.3f}%: ".format(100 * (self.M + i) / float(self.N)))
+            # Sample parameter one at a time
+            for j in range(self.k):
+                alpha, theta_p, Lp = self.proposal(theta0, L0, j, scale_factor)
+                self.all_proposals[i] = theta_p
+                
+                if alpha == 0 or alpha > log(random()):
+                    self.acceptances[i * self.k + j] = 1
+                    self.all_samples[i * self.k + j] = np.append(theta_p, Lp)
+                    theta0, L0 = theta_p, Lp
+                else:
+                    self.all_samples[i * self.k + j] = np.append(theta0, L0)
 
+                # Tune sampler step
+                self.scale_factors[i * self.k + j] = scale_factor
+                if i < self.B and i >= self.lag:
+                    if i % self.lag == 0:
+                        acceptance_proportion = (np.sum(
+                            self.acceptances[((i*self.k)-self.lag-1) : ]) / self.lag)
+                        if acceptance_proportion < self.acceptance_limits[0]:
+                            scale_factor[j] *= 1 - self.scale
+                            #print("Acceptance: {0:.9f}; Scale factor decreased to".
+                            #    format(acceptance_proportion) +
+                            #    " {0:.9f} at iteration {1:d}".
+                            #    format(scale_factor[j], i))
+                        elif acceptance_proportion > self.acceptance_limits[1]:
+                            scale_factor[j] *= 1 + self.scale
+                            #print("Acceptance: {0:.9f}; Scale factor increased to".
+                            #    format(acceptance_proportion) +
+                            #    " {0:.9f} at iteration {1:d}".
+                            #    format(scale_factor[j], i))
             
+            if i % self.M == 0 and self.verbose:
+                   print (100 * (self.M + i) / float(self.N), '%')
+        
+        return self.all_samples.T

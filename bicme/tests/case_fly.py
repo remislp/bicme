@@ -52,7 +52,10 @@ def LogLkd(vec, y):
     n1, r, b = vec[0], vec[1], vec[2]
     T = len(y)
     n = popln(n1, r, b, T)
-    llik = np.sum(y * np.log(n) - n - gammaln(y + 1))
+    try:
+        llik = np.sum(y * np.log(n) - n - gammaln(y + 1))
+    except:
+        llik = -float('inf')
     return llik
 
 def proposal_fly(theta):
