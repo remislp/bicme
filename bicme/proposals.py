@@ -38,15 +38,13 @@ class RWMHProposal():
         beta = 0.05
         k = len(theta)
         if need_mixture:
-            #mass_matrix = np.identity(k) * scale
-            L = np.linalg.cholesky(mass_matrix * pow(2.38, 2) / k)
-            mix1 = (1 - beta) * (theta + np.dot(L.T, np.random.random(k)))
+            L = np.linalg.cholesky(mass_matrix)
+            mix1 = (1 - beta) * (theta + (2.38 / sqrt(k)) * np.dot(L.T, np.random.random(k)))
             mix2 = beta * (theta + (0.1 / sqrt(k)) * np.random.random(k))
             proposal = mix1 + mix2
         else:
-            #proposal = theta + (0.1 / sqrt(k)) * np.random.random(k)
-            proposal = np.exp(np.random.normal(np.log(theta), 0.1/k))
-            print(proposal)
+            proposal = theta + (0.1 / sqrt(k)) * np.random.random(k)
+            #print(proposal)
         
         logLik = self.model(proposal, self.data)
         

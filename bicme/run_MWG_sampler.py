@@ -9,7 +9,7 @@ y = np.array([1225, 825, 4752, 774, 3547, 1549])
 # X0- initial guesses (starting parameters)
 X0 = np.array([y[0], 2, 0.0005])
 # Sampler parameters
-N, M = 1000, 1000
+N, M = 10000, 1000
 
 
 def test_proposal():

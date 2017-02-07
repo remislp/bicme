@@ -180,7 +180,7 @@ class RosenthalAdaptiveSampler(object):
         self.all_proposals = np.zeros((self.N, self.k))
         self.acceptances = np.zeros(self.N)
         
-        start_adaption = 100
+        start_adaption = 2 * self.k
         need_mixture = False
         covariance_matrix = np.identity(self.k)
         mass_matrix = covariance_matrix.copy()
@@ -194,21 +194,11 @@ class RosenthalAdaptiveSampler(object):
             #print(i)
         
             # Update covariance matrix
-            if i == start_adaption:
+            if i >= start_adaption:
                 need_mixture = True
-            elif i > start_adaption:
-                try:
-                    temp = covariance_matrix * scale_factor
-                    L = np.linalg.cholesky(temp)
-                    mass_matrix = covariance_matrix * scale_factor
-                    #print('cov=', covariance_matrix)
-                    #print('mas=', mass_matrix)
-                except:
-                    #print('Warning: mass matrix not positive definite')
-                    mass_matrix = np.identity(self.k) * scale_factor
             else:
                 covariance_matrix = np.identity(self.k)
-                mass_matrix = covariance_matrix * scale_factor
+            mass_matrix = covariance_matrix * scale_factor
                 
             # Get proposal
             alpha, theta_p, Lp = self.proposal(theta0, L0, need_mixture, mass_matrix)
@@ -234,16 +224,16 @@ class RosenthalAdaptiveSampler(object):
                         self.acceptances[(i-self.lag-1) : ]) / self.lag)
                     if acceptance_proportion < self.acceptance_limits[0]:
                         scale_factor *= 1 - self.scale
-                        #print("Acceptance: {0:.9f}; Scale factor decreased to".
-                        #    format(acceptance_proportion) +
-                        #    " {0:.9f} at iteration {1:d}".
-                        #    format(scale_factor, i))
+                        print("Acceptance: {0:.9f}; Scale factor decreased to".
+                            format(acceptance_proportion) +
+                            " {0:.9f} at iteration {1:d}".
+                            format(scale_factor, i))
                     elif acceptance_proportion > self.acceptance_limits[1]:
                         scale_factor *= 1 + self.scale
-                        #print("Acceptance: {0:.9f}; Scale factor increased to".
-                        #    format(acceptance_proportion) +
-                        #    " {0:.9f} at iteration {1:d}".
-                        #    format(scale_factor, i))
+                        print("Acceptance: {0:.9f}; Scale factor increased to".
+                            format(acceptance_proportion) +
+                            " {0:.9f} at iteration {1:d}".
+                            format(scale_factor, i))
             
             if i % self.M == 0 and self.verbose:
                    print (100 * (self.M + i) / float(self.N), '%')
