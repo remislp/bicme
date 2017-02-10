@@ -1,4 +1,4 @@
-from math import sqrt, exp, log, pow
+from math import sqrt, exp, log, pow, isnan, isinf
 import random
 import numpy as np
 
@@ -38,18 +38,20 @@ class RWMHProposal():
         beta = 0.05
         k = len(theta)
         if need_mixture:
-            L = np.linalg.cholesky(mass_matrix)
-            mix1 = (1 - beta) * (theta + (2.38 / sqrt(k)) * np.dot(L.T, np.random.random(k)))
-            mix2 = beta * (theta + (0.1 / sqrt(k)) * np.random.random(k))
+            L = np.linalg.cholesky((pow(2.38, 2) / k) * mass_matrix)
+            mix1 = (1 - beta) * (theta + np.dot(L.T, np.random.normal(size=k)))
+            mix2 = beta * (theta + (0.1 / sqrt(k)) * np.random.normal(size=k))
             proposal = mix1 + mix2
         else:
-            proposal = theta + (0.1 / sqrt(k)) * np.random.random(k)
-            #print(proposal)
-        
-        logLik = self.model(proposal, self.data)
+            proposal = theta + (0.1 / sqrt(k)) * np.random.normal(size=k)
+                
+        try:
+            logLik = self.model(proposal, self.data)
+        except:
+            logLik = float('nan')
         
         alpha = -float('inf')
-        if not np.isinf(logLik) and logLik is not np.isnan(logLik):
+        if (not isinf(logLik)) and (not isnan(logLik)):
             alpha = min(0, logLik - logLik0)
                            
         return alpha, proposal, logLik

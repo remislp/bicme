@@ -194,7 +194,7 @@ class RosenthalAdaptiveSampler(object):
             #print(i)
         
             # Update covariance matrix
-            if i >= start_adaption:
+            if i > start_adaption:
                 need_mixture = True
             else:
                 covariance_matrix = np.identity(self.k)
@@ -214,7 +214,7 @@ class RosenthalAdaptiveSampler(object):
                 
             # Estimate the covariance matrix using previous samples
             if i > start_adaption:
-                covariance_matrix = np.cov(self.all_samples[i-100 : i, : -1].T)
+                covariance_matrix = np.cov(self.all_samples[ : i, : -1].T)
                 
             # Tune sampler step
             self.scale_factors[i] = scale_factor
