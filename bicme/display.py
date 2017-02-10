@@ -22,3 +22,20 @@ def quick_display(S, burnin=0, labels=None):
         count += 1
     plt.show()
 
+def quick_display1(S, burnin, names):
+    imax = np.where(S[-1] == S[-1].max())[0][0]
+    Xmax = S[:, imax]
+    count = 1
+    r = len(S)
+    fig = plt.figure(figsize = (10,20))
+    for i in range(r):
+        ax1 = fig.add_subplot(r, 2, count)
+        ax1.plot(S[i])
+        ax1.set_title(names[i])
+        #ax1.set_xlabel('Iteration')
+    
+        count += 1
+        ax2 = fig.add_subplot(r, 2, count)
+        ax2.hist(S[i, burnin:], bins=20)
+        ax2.axvline(x=Xmax[i], color='r')
+        count += 1
