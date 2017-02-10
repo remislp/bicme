@@ -55,3 +55,30 @@ class RWMHProposal():
             alpha = min(0, logLik - logLik0)
                            
         return alpha, proposal, logLik
+    
+    def propose_mixture_cw(self, theta, logLik0, ip, need_mixture, mass_matrix):
+        """
+        Propose a joint Metropolis-Hastings step for the parameters of a
+        model based on proposing from a mixture distribution.
+        """
+        
+        beta = 0.05
+        k = len(theta)
+        if need_mixture:
+            #L = np.linalg.cholesky((pow(2.38, 2) / k) * mass_matrix)
+            mix1 = (1 - beta) * (theta[ip] + np.dot(mass_matrix, np.random.normal(size=k))[ip])
+            mix2 = beta * (theta[ip] + (0.1 / sqrt(k)) * np.random.normal(size=1))
+            proposal = mix1 + mix2
+        else:
+            proposal = theta[ip] + (0.1 / sqrt(k)) * np.random.normal(size=1)
+                
+        try:
+            logLik = self.model(proposal, self.data)
+        except:
+            logLik = float('nan')
+        
+        alpha = -float('inf')
+        if (not isinf(logLik)) and (not isnan(logLik)):
+            alpha = min(0, logLik - logLik0)
+                           
+        return alpha, proposal, logLik

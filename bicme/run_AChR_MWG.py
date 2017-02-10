@@ -72,7 +72,7 @@ lik = dcprogslik(theta, ([likelihood], mec, [conc]))
 print ("\nInitial likelihood = {0:.6f}".format(lik))
 
 # Sampler parameters
-N, M = 100000, 1000
+N, M = 10000, 1000
 from samplers import MWGSampler
 from proposals import RWMHProposal 
 #sampler = MWGSampler(samples_draw=N, notify_every=M, 

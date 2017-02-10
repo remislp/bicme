@@ -8,6 +8,7 @@ class Sampler(object):
     """
     
     def __init__(self, samples_draw=100000, notify_every=100,
+                 burnin_fraction=0.5, burnin_lag=50,
                  model=None, data=None, proposal=None, verbose=False):
         """
         Parameters
@@ -30,11 +31,23 @@ class Sampler(object):
         """
         self.N = samples_draw
         self.M = notify_every
+        self.B = int(samples_draw * burnin_fraction)
+        self.lag = burnin_lag
+        
         self.model = model
         self.data = data
         self.proposal = proposal
         self.verbose = verbose
+        
+        self.acceptance_limits = [0.1, 0.5]
+        self.scale = 0.1
+        
         print('Sampler initialised...')
+        
+    def do_print(self, i):
+        if (i + 1) % self.M == 0 and self.verbose:
+            print (100 * (i + 1) / float(self.N), '%')
+
     
     def sample(self, theta):
         """
@@ -61,35 +74,23 @@ class Sampler(object):
                     local_theta, ll0 = p, llp
                     
             # every M print job progress in percentage
-            if self.verbose and i % self.M == 0:
-                if self.verbose: print (100 * (self.M + i) / float(self.N), '%')
+            if self.verbose and (i+1) % self.M == 0:
+                if self.verbose: print (100 * (i + 1) / float(self.N), '%')
             # store sample
             #S[ : , i] = np.append(np.exp(local_theta), ll0)
             S[ : , i] = np.append(local_theta, ll0)
         return S
 
-class MWGSampler(object):
+class MWGSampler(Sampler):
     """
     Multiplicative Metropolis_within_Gibbs sampler with scaling during burn-in.
     """
-    def __init__(self, samples_draw=10000, notify_every=100, 
+    def __init__(self, samples_draw=10000, notify_every=100,
                  burnin_fraction=0.5, burnin_lag=50,
                  model=None, data=None, proposal=None, verbose=False):
-
-        # Sampler parameters
-        self.N = samples_draw
-        self.M = notify_every
-        self.B = int(samples_draw * burnin_fraction)
-        self.lag = burnin_lag
-        
-        self.model = model
-        self.data = data
-        self.proposal = proposal
-        self.verbose = verbose
-        
-        self.acceptance_limits = [0.1, 0.5]
-        self.scale = 0.1
-        print('Sampler initialised...')
+        Sampler.__init__(self, samples_draw, notify_every, 
+                 burnin_fraction, burnin_lag,
+                 model, data, proposal, verbose)
         
     def sample(self, theta):
         """
@@ -111,7 +112,7 @@ class MWGSampler(object):
             # Sample parameter one at a time
             for j in range(self.k):
                 alpha, theta_p, Lp = self.proposal(theta0, L0, j, scale_factor)
-                self.all_proposals[i] = theta_p
+                self.all_proposals[i * self.k + j] = theta_p
                 
                 if alpha == 0 or alpha > log(random()):
                     self.acceptances[i * self.k + j] = 1
@@ -139,8 +140,9 @@ class MWGSampler(object):
                             #    " {0:.9f} at iteration {1:d}".
                             #    format(scale_factor[j], i))
             
-            if i % self.M == 0 and self.verbose:
-                   print (100 * (self.M + i) / float(self.N), '%')
+            self.do_print(i)
+#            if (i + 1) % self.M == 0 and self.verbose:
+#                   print (100 * (i + 1) / float(self.N), '%')
         
         return self.all_samples.T
     
@@ -167,6 +169,89 @@ class RosenthalAdaptiveSampler(object):
         self.acceptance_limits = [0.1, 0.5]
         self.scale = 0.1
         print('Sampler initialised...')
+        
+    def sample_cw(self, theta):
+        """
+        Samples parameters one by one to improwe mixing.
+        """
+        
+        self.k = len(theta)
+        self.scale_factors = np.ones((self.N * self.k, self.k))
+        self.required_scale_factors = np.ones((self.N, self.k))
+        self.all_samples = np.zeros((self.N * self.k, self.k+1))
+        self.required_samples = np.zeros((self.N, self.k+1))
+        self.all_proposals = np.zeros((self.N * self.k, self.k))
+        self.acceptances = np.zeros(self.N * self.k)
+        
+        start_adaption = 2 * self.k
+        need_mixture = False
+        covariance_matrix = np.identity(self.k)
+        mass_matrix = covariance_matrix.copy()
+        mass_matrix_L = covariance_matrix.copy()
+        #scale_factor = 1
+        
+        scale_factor = np.ones(self.k)
+        L0 = self.model(theta, self.data)
+        theta0 = theta.copy()
+        
+        # Sampling loop
+        for i in range(self.N):
+            
+            # Update covariance matrix
+            if i > start_adaption:
+                need_mixture = True
+                mass_matrix = covariance_matrix * scale_factor
+                L = np.linalg.cholesky((pow(2.38, 2) / self.k) * mass_matrix)
+                mass_matrix_L = L.T
+            else:
+                covariance_matrix = np.identity(self.k)
+                mass_matrix = covariance_matrix * scale_factor
+            
+            
+            # Sample parameter one at a time
+            for j in range(self.k):
+                # Get proposal
+                alpha, theta_p, Lp = self.proposal(theta0, L0, j, need_mixture, mass_matrix_L)
+                self.all_proposals[i * self.k + j] = theta_p
+                
+                # Check alpha
+                if alpha == 0 or alpha > log(random()):
+                    self.acceptances[i * self.k + j] = 1
+                    self.all_samples[i * self.k + j] = np.append(theta_p, Lp)
+                    theta0, L0 = theta_p, Lp
+                else:
+                    self.all_samples[i * self.k + j] = np.append(theta0, L0)
+                    
+                # Tune sampler step
+                self.scale_factors[i * self.k + j] = scale_factor
+                if i < self.B and i >= self.lag:
+                    if i % self.lag == 0:
+                        acceptance_proportion = (np.sum(
+                            self.acceptances[((i*self.k)-self.lag-1) : ]) / self.lag)
+                        if acceptance_proportion < self.acceptance_limits[0]:
+                            scale_factor[j] *= 1 - self.scale
+                            print("Acceptance: {0:.9f}; Scale factor decreased to".
+                                format(acceptance_proportion) +
+                                " {0:.9f} at iteration {1:d}".
+                                format(scale_factor[j], i))
+                        elif acceptance_proportion > self.acceptance_limits[1]:
+                            scale_factor[j] *= 1 + self.scale
+                            print("Acceptance: {0:.9f}; Scale factor increased to".
+                                format(acceptance_proportion) +
+                                " {0:.9f} at iteration {1:d}".
+                                format(scale_factor[j], i))
+                
+            self.required_samples[i] = np.append(theta0, L0)
+            # Estimate the covariance matrix using previous samples
+            if i > start_adaption:
+                covariance_matrix = np.cov(self.required_samples[ : i, : -1].T)
+            
+            if (i + 1) % self.M == 0 and self.verbose:
+                   print (100 * (i + 1) / float(self.N), '%')
+                   
+        return self.required_samples.T
+                
+           
         
     def sample(self, theta):
         """
@@ -235,7 +320,7 @@ class RosenthalAdaptiveSampler(object):
                             " {0:.9f} at iteration {1:d}".
                             format(scale_factor, i))
             
-            if i % self.M == 0 and self.verbose:
-                   print (100 * (self.M + i) / float(self.N), '%')
+            if (i + 1) % self.M == 0 and self.verbose:
+                   print (100 * (i + 1) / float(self.N), '%')
                    
         return self.all_samples.T

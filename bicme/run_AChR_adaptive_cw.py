@@ -84,10 +84,10 @@ proposer = RWMHProposal(dcprogslik, ([likelihood], mec, [conc]), verbose=True)
 sampler = RosenthalAdaptiveSampler(samples_draw=N, notify_every=M, 
                      burnin_fraction=0.5, burnin_lag=50,
                      model=dcprogslik, data=([likelihood], mec, [conc]), 
-                     proposal=proposer.propose_mixture,
+                     proposal=proposer.propose_mixture_cw,
                      verbose=True)                         
 start = time.clock()
-S = sampler.sample(X)
+S = sampler.sample_cw(X)
 t = time.clock() - start
 print ('\nCPU time in sampler =', t)
 
@@ -101,21 +101,4 @@ print('imax = ', imax)
 X = S[:-1, imax]
 mec.theta_unsqueeze(X)
 mec.printout()
-
-from display import DisplayResults
-
-par_names = ['beta1', 'beta2', 'alpha1', 'alpha2', 'k(-1)', 'k(+2)', 'logLik']
-
-display = DisplayResults(S, burnin=5000, names=par_names)
-#display.normalised = True
-#display.show_labels = False
-
-
-
-display.chains()
-#display.distributions()
-#display.autocorrelations()
-#display.correlations(3, 1)
-
-display.corner()
 

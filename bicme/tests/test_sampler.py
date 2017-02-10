@@ -33,4 +33,9 @@ def test_fly_case():
     assert S[2, imax] > 0.0004 and S[2, imax] < 0.0005
     
     
+def test_MWG_sampler():
     
+    from bicme.samplers import MWGSampler
+    sampler = MWGSampler()
+    
+    assert sampler.N == 10000
