@@ -16,17 +16,33 @@ class RWMHProposal():
         self.model = model
         self.data = data
         
-    def propose(self, theta, logLik0, ip, scale):
+    def propose_block(self, theta, logLik0, scale):
+        L = np.linalg.cholesky(np.identity(len(theta)) * scale)
+        proposal = theta.copy() +  np.dot(L.T, np.random.normal(size=len(theta)))
+        logLik = self.model(proposal, self.data)
+        alpha = -float('inf')
+        if not np.isinf(logLik):
+            alpha = min(0, logLik - logLik0)
+        return alpha, proposal, logLik
+    
+    def propose_component(self, theta, logLik0, ip,  scale):
+        proposal = theta.copy()
+        proposal[ip] = random.normalvariate(theta[ip], scale[ip])
+        logLik = self.model(proposal, self.data)
+        alpha = -float('inf')
+        if not np.isinf(logLik):
+            alpha = min(0, logLik - logLik0)
+        return alpha, proposal, logLik
+        
+    def propose_log_component(self, theta, logLik0, ip, scale):
         
         proposal = theta.copy()
         proposal[ip] = exp(random.normalvariate(log(theta[ip]), scale[ip]))
         logLik = self.model(proposal, self.data)
-        
         alpha = -float('inf')
         if not np.isinf(logLik):
             alpha = min(0, (logLik + np.sum(np.log(proposal)) - 
                            (logLik0 + np.sum(np.log(theta)))))
-                           
         return alpha, proposal, logLik
         
     def propose_mixture(self, theta, logLik0, need_mixture, mass_matrix):

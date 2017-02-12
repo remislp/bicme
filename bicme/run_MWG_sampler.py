@@ -29,10 +29,10 @@ def test_fly_case_MWG():
     # Initialise Sampler
     sampler = MWGSampler(samples_draw=N, notify_every=M, 
                          burnin_fraction=0.5, burnin_lag=50,
-                         model=LogLkd, data=y, proposal=proposer.propose,
+                         model=LogLkd, data=y, proposal=proposer.propose_log_component,
                          verbose=True)                         
     # Sample
-    S = sampler.sample(X0)
+    S = sampler.sample_component(X0)
     return S
 
 def test_fly_case_RosenthalAdaptive():
@@ -55,6 +55,6 @@ print('X0= ', X0)
 #    print('alpha= ', alpha, '; logLik= ', L)
 #    print('proposal= ', X)
 
-#S = test_fly_case_MWG()
-S = test_fly_case_RosenthalAdaptive()
+S = test_fly_case_MWG()
+#S = test_fly_case_RosenthalAdaptive()
 quick_display(S, burnin=N/2)

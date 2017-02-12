@@ -91,8 +91,60 @@ class MWGSampler(Sampler):
         Sampler.__init__(self, samples_draw, notify_every, 
                  burnin_fraction, burnin_lag,
                  model, data, proposal, verbose)
+                 
+    def sample_block(self, theta):
+        self.k = len(theta)
+        self.scale_factors = np.ones((self.N, self.k))
+        self.all_samples = np.zeros((self.N, self.k+1))
+        self.all_proposals = np.zeros((self.N, self.k))
+        self.acceptances = np.zeros(self.N)
         
-    def sample(self, theta):
+        scale_factor = 1
+        
+        L0 = self.model(theta, self.data)
+        theta0 = theta.copy()
+        
+        # Sampling loop
+        for i in range(self.N):
+            #print(i)
+        
+            # Get proposal
+            alpha, theta_p, Lp = self.proposal(theta0, L0, scale_factor)
+            self.all_proposals[i] = theta_p
+                
+            # Check alpha
+            if alpha == 0 or alpha > log(random()):
+                self.acceptances[i] = 1
+                self.all_samples[i] = np.append(theta_p, Lp)
+                theta0, L0 = theta_p, Lp
+            else:
+                self.all_samples[i] = np.append(theta0, L0)
+                
+            # Tune sampler step
+            self.scale_factors[i] = scale_factor
+            if i < self.B and i >= self.lag:
+                if i % self.lag == 0:
+                    acceptance_proportion = (np.sum(
+                        self.acceptances[(i-self.lag-1) : ]) / self.lag)
+                    if acceptance_proportion < self.acceptance_limits[0]:
+                        scale_factor *= 1 - self.scale
+                        print("Acceptance: {0:.9f}; Scale factor decreased to".
+                            format(acceptance_proportion) +
+                            " {0:.9f} at iteration {1:d}".
+                            format(scale_factor, i))
+                    elif acceptance_proportion > self.acceptance_limits[1]:
+                        scale_factor *= 1 + self.scale
+                        print("Acceptance: {0:.9f}; Scale factor increased to".
+                            format(acceptance_proportion) +
+                            " {0:.9f} at iteration {1:d}".
+                            format(scale_factor, i))
+            
+            if (i + 1) % self.M == 0 and self.verbose:
+                   print (100 * (i + 1) / float(self.N), '%')
+                   
+        return self.all_samples.T
+        
+    def sample_component(self, theta):
         """
         Samples parameters one by one to improwe mixing.
         """
