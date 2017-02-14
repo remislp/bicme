@@ -49,8 +49,8 @@ def run_adaptive(samples=10000):
     return S
 
     
-S = run_MWG(10000)
-#S = run_adaptive(10000)
+#S = run_MWG(10000)
+S = run_adaptive(10000)
 
 #np.savetxt('AChR_MCMC_MWG.csv', S, delimiter=',')
 #S = np.loadtxt('AChR_MCMC_MWG.csv', delimiter=',')
@@ -65,8 +65,8 @@ display = DisplayResults(S, burnin=int(len(S[-1])/2), names=par_names)
 #display.normalised = True
 #display.show_labels = False
 display.chains()
-display.distributions()
-display.corner()
+#display.distributions()
+#display.corner()
 #display.autocorrelations()
 #display.correlations(3, 1)
 
