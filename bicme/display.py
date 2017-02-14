@@ -102,7 +102,7 @@ class DisplayResults(object):
         return acf[int(acf.size/2) : ] / acf[int(acf.size / 2)]
             
     def __autocorrelation(self, ax, ind):
-        ax.plot(self.__calculate_autocorrelation(self.S[ind]))
+        ax.plot(self.__calculate_autocorrelation(self.S[ind, self.burnin:]))
         ax.set_ylim(-1, 1)
         ax.axhline(y=0, color='k')
         #ax.set_xlim(0, 400)
@@ -124,10 +124,7 @@ def quick_display(S, burnin=0, labels=None):
     """    
     """
     
-    Lmax = S[-1].max()
-    print ('Lmax=', Lmax)
     imax = np.where(S[-1] == S[-1].max())[0][0]
-    print('pars=', S[:, imax])
     count = 1
     r = len(S)
     for i in range(r):

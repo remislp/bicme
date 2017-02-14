@@ -34,7 +34,7 @@ class RWMHProposal():
             alpha = min(0, logLik - logLik0)
         return alpha, proposal, logLik
         
-    def propose_log_component(self, theta, logLik0, ip, scale):
+    def propose_component_log(self, theta, logLik0, ip, scale):
         
         proposal = theta.copy()
         proposal[ip] = exp(random.normalvariate(log(theta[ip]), scale[ip]))
@@ -45,7 +45,7 @@ class RWMHProposal():
                            (logLik0 + np.sum(np.log(theta)))))
         return alpha, proposal, logLik
         
-    def propose_mixture(self, theta, logLik0, need_mixture, mass_matrix):
+    def propose_block_mixture(self, theta, logLik0, need_mixture, mass_matrix):
         """
         Propose a joint Metropolis-Hastings step for the parameters of a
         model based on proposing from a mixture distribution.
@@ -72,7 +72,7 @@ class RWMHProposal():
                            
         return alpha, proposal, logLik
     
-    def propose_mixture_cw(self, theta, logLik0, ip, need_mixture, mass_matrix):
+    def propose_component_mixture(self, theta, logLik0, ip, need_mixture, mass_matrix):
         """
         Propose a joint Metropolis-Hastings step for the parameters of a
         model based on proposing from a mixture distribution.

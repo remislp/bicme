@@ -72,13 +72,10 @@ class Sampler(object):
                 alpha = min(1, np.exp(llp-ll0))
                 if random() < alpha:
                     local_theta, ll0 = p, llp
-                    
-            # every M print job progress in percentage
-            if self.verbose and (i+1) % self.M == 0:
-                if self.verbose: print (100 * (i + 1) / float(self.N), '%')
-            # store sample
-            #S[ : , i] = np.append(np.exp(local_theta), ll0)
             S[ : , i] = np.append(local_theta, ll0)
+                    
+            self.do_print(i)
+            
         return S
 
 class MWGSampler(Sampler):
@@ -138,9 +135,7 @@ class MWGSampler(Sampler):
                             format(acceptance_proportion) +
                             " {0:.9f} at iteration {1:d}".
                             format(scale_factor, i))
-            
-            if (i + 1) % self.M == 0 and self.verbose:
-                   print (100 * (i + 1) / float(self.N), '%')
+            self.do_print(i)
                    
         return self.all_samples.T
         
@@ -199,14 +194,17 @@ class MWGSampler(Sampler):
         return self.all_samples.T
     
     
-class RosenthalAdaptiveSampler(object):
+class RosenthalAdaptiveSampler(Sampler):
     """
     Algorithm taken from Rosenthal 2006 technical report.
     """
-    def __init__(self, samples_draw=10000, notify_every=100, 
+    def __init__(self, samples_draw=10000, notify_every=100,
                  burnin_fraction=0.5, burnin_lag=50,
                  model=None, data=None, proposal=None, verbose=False):
-
+        Sampler.__init__(self, samples_draw, notify_every, 
+                 burnin_fraction, burnin_lag,
+                 model, data, proposal, verbose)
+    
         # Sampler parameters
         self.N = samples_draw
         self.M = notify_every
@@ -222,7 +220,7 @@ class RosenthalAdaptiveSampler(object):
         self.scale = 0.1
         print('Sampler initialised...')
         
-    def sample_cw(self, theta):
+    def sample_component(self, theta):
         """
         Samples parameters one by one to improwe mixing.
         """
@@ -298,14 +296,13 @@ class RosenthalAdaptiveSampler(object):
             if i > start_adaption:
                 covariance_matrix = np.cov(self.required_samples[ : i, : -1].T)
             
-            if (i + 1) % self.M == 0 and self.verbose:
-                   print (100 * (i + 1) / float(self.N), '%')
+            self.do_print(i)
                    
         return self.required_samples.T
                 
            
         
-    def sample(self, theta):
+    def sample_block(self, theta):
         """
         Samples parameters one by one to improwe mixing.
         """
@@ -372,7 +369,6 @@ class RosenthalAdaptiveSampler(object):
                             " {0:.9f} at iteration {1:d}".
                             format(scale_factor, i))
             
-            if (i + 1) % self.M == 0 and self.verbose:
-                   print (100 * (i + 1) / float(self.N), '%')
+            self.do_print(i)
                    
         return self.all_samples.T
