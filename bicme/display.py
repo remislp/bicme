@@ -48,15 +48,29 @@ class DisplayResults(object):
         plt.show()
         
     def corner(self):
+        self.show_labels = False
         fig = plt.figure(figsize = (10,10))
         for i in range(self.k):
             for j in range(i+1):
                 if j == i:
                     ax = fig.add_subplot(self.k, self.k, self.k*i+j+1)
                     self.__distribution(ax, j)
+                    ax.tick_params(labelbottom='off')
+                    ax.tick_params(labelleft='off')
+                    if j == 0:
+                        ax.set_ylabel(self.names[i])
+                    if i == self.k-1:
+                        ax.set_xlabel(self.names[j])
                 else:
                     ax = fig.add_subplot(self.k, self.k, self.k*i+j+1)
                     self.__correlation(ax, j, i)
+                    ax.tick_params(labelbottom='off')
+                    ax.tick_params(labelleft='off')
+                    if j == 0:
+                        ax.set_ylabel(self.names[i])
+                    if i == self.k-1:
+                        ax.set_xlabel(self.names[j])
+            
         plt.show()
                     
             

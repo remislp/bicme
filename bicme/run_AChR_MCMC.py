@@ -49,8 +49,8 @@ def run_adaptive(samples=10000):
     return S
 
     
-#S = run_MWG(10000)
-S = run_adaptive(10000)
+S = run_MWG(10000)
+#S = run_adaptive(10000)
 
 #np.savetxt('AChR_MCMC_MWG.csv', S, delimiter=',')
 #S = np.loadtxt('AChR_MCMC_MWG.csv', delimiter=',')
@@ -60,6 +60,9 @@ print('Lmax = ', Lmax)
 imax = np.where(S[-1] == S[-1].max())[0][0]
 print('imax = ', imax)
 print('pars=', S[:, imax])
+
+end_lik = HJCFIT_LogLik(S[:, imax], ACh_data)
+print ("\nEnd likelihood = {0:.6f}".format(end_lik))
 
 display = DisplayResults(S, burnin=int(len(S[-1])/2), names=par_names)
 #display.normalised = True
