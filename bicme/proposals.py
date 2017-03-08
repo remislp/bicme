@@ -25,7 +25,7 @@ class RWMHProposal():
             alpha = min(0, logLik - logLik0)
         return alpha, proposal, logLik
     
-    def __get_alpha_logpars(self, proposal, logLik0):
+    def __get_alpha_logpars(self, proposal, theta, logLik0):
         try:
             logLik = self.model(proposal, self.data)
         except:
@@ -44,7 +44,7 @@ class RWMHProposal():
     def propose_block_log(self, theta, logLik0, scale, ip=None):
         L = np.linalg.cholesky(np.identity(len(theta)) * scale)
         proposal = np.log(theta.copy()) +  np.dot(L.T, np.random.normal(size=len(theta)))
-        return self.__get_alpha_logpars(np.exp(proposal), logLik0)
+        return self.__get_alpha_logpars(np.exp(proposal), theta, logLik0)
     
     def propose_component(self, theta, logLik0,  scale, ip):
         proposal = theta.copy()
@@ -54,7 +54,7 @@ class RWMHProposal():
     def propose_component_log(self, theta, logLik0, scale, ip):
         proposal = theta.copy()
         proposal[ip] = exp(random.normalvariate(log(theta[ip]), scale[ip]))
-        return self.__get_alpha_logpars(np.exp(proposal), logLik0)
+        return self.__get_alpha_logpars(proposal, theta, logLik0)
         
     def propose_block_mixture(self, theta, logLik0, mass_matrix, ip=None, need_mixture=True):
         """

@@ -47,8 +47,8 @@ class Sampler(object):
         print('Sampler initialised...')
         
     def do_print(self, i):
-        if (i + 1) % self.M == 0 and self.verbose:
-            print (100 * (i + 1) / float(self.N), '%')
+        if i % self.M == 0 and self.verbose:
+            print (100 * i / float(self.N), '%')
 
     def sample(self, theta):
         """
@@ -70,24 +70,19 @@ class Sampler(object):
                 if random() < alpha:
                     local_theta, ll0 = p, llp
             S[ : , i] = np.append(local_theta, ll0)
-            self.do_print(i)
+            self.do_print(i+1)
         return S
     
     def tune_scale(self, scale_factor, acceptance_proportion, i):
-        if i < self.B and i >= self.lag:
-            if i % self.lag == 0:
-                if acceptance_proportion < self.acceptance_limits[0]:
-                    scale_factor *= 1 - self.scale
-                    print("Acceptance: {0:.9f}; Scale factor decreased to".
-                        format(acceptance_proportion) +
-                        " {0:.9f} at iteration {1:d}".
-                        format(scale_factor, i))
-                elif acceptance_proportion > self.acceptance_limits[1]:
-                    scale_factor *= 1 + self.scale
-                    print("Acceptance: {0:.9f}; Scale factor increased to".
-                        format(acceptance_proportion) +
-                        " {0:.9f} at iteration {1:d}".
-                        format(scale_factor, i))
+        message = 'not changed'
+        if acceptance_proportion < self.acceptance_limits[0]:
+            scale_factor *= 1 - self.scale
+            message = 'decreased'
+        elif acceptance_proportion > self.acceptance_limits[1]:
+            scale_factor *= 1 + self.scale
+            message = 'increased'
+        print("Iteration {0:d}; Acceptance: {1:.6f}; Scale factor {2:.6f}: {3}".
+                format(i+1, acceptance_proportion, scale_factor, message))
         return scale_factor
 
 class MWGSampler(Sampler):
@@ -116,11 +111,12 @@ class MWGSampler(Sampler):
                 theta0, L0 = theta_p, Lp
             self.samples.append(np.append(theta0, L0))
             self.scale_factors.append(scale_factor)
-            if i % self.lag == 0:
+            #if (i+1) % self.lag == 0:
+            if ((i+1) % self.lag == 0) and (i < self.B):
                 acceptance_proportion = (np.sum(
-                    self.acceptances[(i-self.lag-1) : ]) / self.lag)
-            scale_factor = self.tune_scale(scale_factor, acceptance_proportion, i)
-            self.do_print(i)
+                    self.acceptances[i - self.lag + 1 : i + 1]) / self.lag)
+                scale_factor = self.tune_scale(scale_factor, acceptance_proportion, i)
+            self.do_print(i+1)
         return np.array(self.samples).T
         
     def sample_component(self, theta):
@@ -128,7 +124,7 @@ class MWGSampler(Sampler):
         Samples parameters one by one to improwe mixing.
         """
         self.k = len(theta)
-        self.acceptances = np.zeros(self.N * self.k)
+        self.acceptances = np.zeros((self.k, self.N))
         scale_factor = np.ones(self.k)
         L0 = self.model(theta, self.data)
         theta0 = theta.copy()
@@ -139,16 +135,17 @@ class MWGSampler(Sampler):
                 alpha, theta_p, Lp = self.proposal(theta0, L0, scale_factor, j)
                 self.proposals.append(theta_p)
                 if alpha == 0 or alpha > log(random()):
-                    self.acceptances[i * self.k + j] = 1
+                    self.acceptances[j , i] = 1
                     theta0, L0 = theta_p, Lp
-                self.samples.append(np.append(theta0, L0))
+                #self.samples.append(np.append(theta0, L0))
                 # Tune sampler step
                 self.scale_factors.append(scale_factor)
-                if i % self.lag == 0:
+                if ((i+1) % self.lag == 0) and (i < self.B):
                     acceptance_proportion = (np.sum(
-                        self.acceptances[((i*self.k)-self.lag-1) : ]) / self.lag)
-                scale_factor[j] = self.tune_scale(scale_factor[j], acceptance_proportion, i)
-            self.do_print(i)  
+                        self.acceptances[j, i - self.lag + 1 : i + 1]) / (self.lag))
+                    scale_factor[j] = self.tune_scale(scale_factor[j], acceptance_proportion, i)
+            self.samples.append(np.append(theta0, L0))
+            self.do_print(i+1)  
         return np.array(self.samples).T
 
     
@@ -162,55 +159,7 @@ class RosenthalAdaptiveSampler(Sampler):
         Sampler.__init__(self, samples_draw, notify_every, 
                  burnin_fraction, burnin_lag,
                  model, data, proposal, verbose)
-        
-    def sample_component(self, theta):
-        """
-        Samples parameters one by one to improwe mixing.
-        """
-        self.k = len(theta)
-        self.required_samples = np.zeros((self.N, self.k+1))
-        self.acceptances = np.zeros(self.N * self.k)
-        start_adaption = 2 * self.k
-        need_mixture = False
-        covariance_matrix = np.identity(self.k)
-        mass_matrix = covariance_matrix.copy()
-        mass_matrix_L = covariance_matrix.copy()
-        scale_factor = np.ones(self.k)
-        L0 = self.model(theta, self.data)
-        theta0 = theta.copy()
-        # Sampling loop
-        for i in range(self.N):
-            # Update covariance matrix
-            if i > start_adaption:
-                need_mixture = True
-                mass_matrix = covariance_matrix * scale_factor
-                L = np.linalg.cholesky((pow(2.38, 2) / self.k) * mass_matrix)
-                mass_matrix_L = L.T
-            else:
-                mass_matrix = np.identity(self.k) * scale_factor
-            # Sample parameter one at a time
-            for j in range(self.k):
-                # Get proposal
-                alpha, theta_p, Lp = self.proposal(theta0, L0, mass_matrix_L, j, need_mixture)
-                self.proposals.append(theta_p)
-                # Check alpha
-                if alpha == 0 or alpha > log(random()):
-                    self.acceptances[i * self.k + j] = 1
-                    theta0, L0 = theta_p, Lp
-                self.samples.append(np.append(theta0, L0))
-                # Tune sampler step
-                self.scale_factors.append(scale_factor)
-                if i % self.lag == 0:
-                    acceptance_proportion = (np.sum(
-                        self.acceptances[((i*self.k)-self.lag-1) : ]) / self.lag)
-                scale_factor[j] = self.tune_scale(scale_factor[j], acceptance_proportion, i)
-            self.required_samples[i] = np.append(theta0, L0)
-            # Estimate the covariance matrix using previous samples
-            if i > start_adaption:
-                covariance_matrix = np.cov(self.required_samples[ : i, : -1].T)
-            self.do_print(i) 
-        return np.array(self.samples).T
-        
+                
     def sample_block(self, theta):
         """
         Samples parameters one by one to improwe mixing.
@@ -225,7 +174,7 @@ class RosenthalAdaptiveSampler(Sampler):
         # Sampling loop
         for i in range(self.N):
             # Update covariance matrix
-            if i > start_adaption:
+            if i+1 > start_adaption:
                 need_mixture = True
                 mass_matrix = np.cov(np.array(self.samples)[ : i-1, : -1].T) * scale_factor
             else:
@@ -239,9 +188,9 @@ class RosenthalAdaptiveSampler(Sampler):
                 theta0, L0 = theta_p, Lp
             self.samples.append(np.append(theta0, L0))
             self.scale_factors.append(scale_factor)
-            if i % self.lag == 0:
+            if ((i+1) % self.lag == 0) and (i < self.B):
                 acceptance_proportion = (np.sum(
-                    self.acceptances[(i-self.lag-1) : ]) / self.lag)
-            scale_factor = self.tune_scale(scale_factor, acceptance_proportion, i)
-            self.do_print(i)
+                    self.acceptances[i - self.lag + 1 : i + 1]) / self.lag)
+                scale_factor = self.tune_scale(scale_factor, acceptance_proportion, i)
+            self.do_print(i+1)
         return np.array(self.samples).T
