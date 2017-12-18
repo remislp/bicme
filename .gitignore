@@ -1,6 +1,9 @@
 C/mex/*
 .DS_Store
 nbproject/
+build/
+dist/
+BICME.egg-info/
 *.pyc
 *.bat
 *.csv
