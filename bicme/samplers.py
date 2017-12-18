@@ -125,6 +125,9 @@ class MWGSampler(Sampler):
         """
         self.k = len(theta)
         self.acceptances = np.zeros((self.k, self.N))
+        self.proposals = np.zeros((self.k, self.N))
+        self.samples = np.zeros((self.k, self.N))
+        self.posteriors = np.zeros((self.k, self.N))
         scale_factor = np.ones(self.k)
         L0 = self.model(theta, self.data)
         theta0 = theta.copy()
@@ -132,11 +135,16 @@ class MWGSampler(Sampler):
         for i in range(self.N):
             # Sample parameter one at a time
             for j in range(self.k):
+                self.posteriors[j, i] = L0
+                self.samples[j, i] = theta0[j]
                 alpha, theta_p, Lp = self.proposal(theta0, L0, scale_factor, j)
-                self.proposals.append(theta_p)
+                self.proposals[j, i] = theta_p[j] #.append(theta_p)
                 if alpha == 0 or alpha > log(random()):
                     self.acceptances[j , i] = 1
                     theta0, L0 = theta_p, Lp
+                    self.samples[j, i] = theta_p[j]
+                    self.posteriors[j, i] = Lp
+                    
                 #self.samples.append(np.append(theta0, L0))
                 # Tune sampler step
                 self.scale_factors.append(scale_factor)
@@ -144,9 +152,9 @@ class MWGSampler(Sampler):
                     acceptance_proportion = (np.sum(
                         self.acceptances[j, i - self.lag + 1 : i + 1]) / (self.lag))
                     scale_factor[j] = self.tune_scale(scale_factor[j], acceptance_proportion, i)
-            self.samples.append(np.append(theta0, L0))
+            #self.samples.append(np.append(theta0, L0))
             self.do_print(i+1)  
-        return np.array(self.samples).T
+        return self.samples, self.posteriors, self.proposals
 
     
 class RosenthalAdaptiveSampler(Sampler):
@@ -171,26 +179,35 @@ class RosenthalAdaptiveSampler(Sampler):
         scale_factor = 1
         L0 = self.model(theta, self.data)
         theta0 = theta.copy()
+        
+        #self.posteriors = []
+        self.proposals = np.zeros((self.N, self.k))
+        self.samples = np.zeros((self.N, self.k))
+        self.posteriors = np.zeros((1, self.N))
+        
+        #mass_matrix = np.identity(self.k) * scale_factor
+        
         # Sampling loop
         for i in range(self.N):
             # Update covariance matrix
-            if i+1 > start_adaption:
+            if i+1 >= start_adaption:
                 need_mixture = True
-                mass_matrix = np.cov(np.array(self.samples)[ : i-1, : -1].T) * scale_factor
+                mass_matrix = np.cov(np.array(self.samples)[ : i-1, : ].T) * scale_factor
             else:
                 mass_matrix = np.identity(self.k) * scale_factor
             # Get proposal
-            alpha, theta_p, Lp = self.proposal(theta0, L0, mass_matrix, None, need_mixture)
-            self.proposals.append(theta_p)
+            alpha, theta_p, Lp = self.proposal(theta0, L0, mass_matrix, need_mixture)
+            self.proposals[i] = theta_p
             # Check alpha
             if alpha == 0 or alpha > log(random()):
                 self.acceptances[i] = 1
                 theta0, L0 = theta_p, Lp
-            self.samples.append(np.append(theta0, L0))
+            self.samples[i] = theta0
+            self.posteriors[:, i] = L0
             self.scale_factors.append(scale_factor)
             if ((i+1) % self.lag == 0) and (i < self.B):
                 acceptance_proportion = (np.sum(
                     self.acceptances[i - self.lag + 1 : i + 1]) / self.lag)
                 scale_factor = self.tune_scale(scale_factor, acceptance_proportion, i)
             self.do_print(i+1)
-        return np.array(self.samples).T
+        return self.samples.T, self.posteriors, self.proposals.T
