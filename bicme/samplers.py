@@ -9,7 +9,7 @@ class Sampler(object):
     
     def __init__(self, samples_draw=100000, notify_every=100,
                  burnin_fraction=0.5, burnin_lag=50,
-                 model=None, data=None, proposal=None, verbose=False):
+                 model=None, proposal=None, verbose=False):
         """
         Parameters
         ----------
@@ -35,7 +35,7 @@ class Sampler(object):
         self.B = int(samples_draw * burnin_fraction)
         self.lag = burnin_lag
         self.model = model
-        self.data = data
+        #self.data = data
         self.proposal = proposal
         self.verbose = verbose
         self.acceptance_limits = [0.1, 0.5]
@@ -55,7 +55,7 @@ class Sampler(object):
         theta - starting values for the parameters
         """
         S = np.zeros((len(theta) + 1, self.N))
-        ll0 = self.model(theta, self.data)
+        ll0 = self.model(theta) #, self.data)
         local_theta = theta.copy()
         for i in range(self.N):
             # Generate candidate state
@@ -63,7 +63,7 @@ class Sampler(object):
              # accept / reject new state
             if p.all() > 0:
                 try:
-                    llp = self.model(p, self.data)
+                    llp = self.model(p) #, self.data)
                 except:
                     llp = float('inf')
                 alpha = min(1, np.exp(llp-ll0))
@@ -91,15 +91,15 @@ class MWGSampler(Sampler):
     """
     def __init__(self, samples_draw=10000, notify_every=100,
                  burnin_fraction=0.5, burnin_lag=50,
-                 model=None, data=None, proposal=None, verbose=False):
+                 model=None, proposal=None, verbose=False):
         Sampler.__init__(self, samples_draw, notify_every, 
                  burnin_fraction, burnin_lag,
-                 model, data, proposal, verbose)
+                 model, proposal, verbose)
                  
     def sample_block(self, theta):
         self.k = len(theta)
         scale_factor = 1
-        L0 = self.model(theta, self.data)
+        L0 = self.model(theta) #, self.data)
         theta0 = theta.copy()
         for i in range(self.N):
             # Get proposal
@@ -129,7 +129,7 @@ class MWGSampler(Sampler):
         self.samples = np.zeros((self.k, self.N))
         self.posteriors = np.zeros((self.k, self.N))
         scale_factor = np.ones(self.k)
-        L0 = self.model(theta, self.data)
+        L0 = self.model(theta) #, self.data)
         theta0 = theta.copy()
         # Sampling loop
         for i in range(self.N):
@@ -163,10 +163,10 @@ class RosenthalAdaptiveSampler(Sampler):
     """
     def __init__(self, samples_draw=10000, notify_every=100,
                  burnin_fraction=0.5, burnin_lag=50,
-                 model=None, data=None, proposal=None, verbose=False):
+                 model=None, proposal=None, verbose=False):
         Sampler.__init__(self, samples_draw, notify_every, 
                  burnin_fraction, burnin_lag,
-                 model, data, proposal, verbose)
+                 model, proposal, verbose)
                 
     def sample_block(self, theta):
         """
@@ -177,7 +177,7 @@ class RosenthalAdaptiveSampler(Sampler):
         need_mixture = False
         mass_matrix = np.identity(self.k)
         scale_factor = 1
-        L0 = self.model(theta, self.data)
+        L0 = self.model(theta) #, self.data)
         theta0 = theta.copy()
         
         #self.posteriors = []

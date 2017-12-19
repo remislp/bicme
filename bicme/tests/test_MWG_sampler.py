@@ -1,15 +1,17 @@
 import numpy as np
 import scipy.io as sio
 
+
 from bicme.samplers import MWGSampler
 #from bicme.samplers import RosenthalAdaptiveSampler
 from bicme.proposals import RWMHProposal
-from case_normal import norm_logPosterior
+from bicme.tests.case_normal import CaseNormal
 
 class TestMWGSampler:
     def setUp(self):
         mat1 = sio.loadmat('../BICME/Tests/Data/NormData.mat')
-        self.data = np.array(mat1['data']).flatten()
+        data = np.array(mat1['data']).flatten()
+        self.cn = CaseNormal(data)
         self.X0 = [2, 10]
         
     def tearDown(self):
@@ -17,10 +19,10 @@ class TestMWGSampler:
 
     def test_normal_block(self):
         # Initialise Proposer
-        proposer = RWMHProposal(norm_logPosterior, self.data, verbose=True)
+        proposer = RWMHProposal(self.cn.logPosterior, verbose=True)
         sampler = MWGSampler(samples_draw=10, notify_every=1, 
                          burnin_fraction=0.5, burnin_lag=5,
-                         model=norm_logPosterior, data=self.data, 
+                         model=self.cn.logPosterior,  
                          proposal=proposer.propose_block,
                          verbose=True)  
         sampler.acceptance_limits = [0.3, 0.7]
@@ -45,10 +47,10 @@ class TestMWGSampler:
 
     def test_normal_component(self):
         # Initialise Proposer
-        proposer = RWMHProposal(norm_logPosterior, self.data, verbose=True)
+        proposer = RWMHProposal(self.cn.logPosterior, verbose=True)
         sampler = MWGSampler(samples_draw=5, notify_every=1, 
                          burnin_fraction=0.5, burnin_lag=3,
-                         model=norm_logPosterior, data=self.data, 
+                         model=self.cn.logPosterior,  
                          proposal=proposer.propose_component,
                          verbose=True)  
         sampler.acceptance_limits = [0.3, 0.7]

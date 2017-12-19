@@ -1,16 +1,36 @@
 import numpy as np
 import scipy.stats
 
-def norm_logPosterior(X, y):
-    return norm_logLik(X, y) + norm_logPrior(X)
-
-def norm_logLik(X, y):
-    return np.sum(np.log(scipy.stats.norm.pdf(y, X[0], X[1]))) 
+class CaseNormal(object):
+    """
+    Normal distribution case.
+    """
     
-def norm_logPrior(X):
-    mu_lims = [-20, 20]
-    si_lims = [0, 100]
-    mu_low, mu_range = mu_lims[0], mu_lims[1] - mu_lims[0]
-    si_low, si_range = si_lims[0], si_lims[1] - si_lims[0]
-    return (np.log(scipy.stats.uniform.pdf(X[0], mu_low, mu_range)) 
-              + np.log(scipy.stats.uniform.pdf(X[1], si_low, si_range)))
+    def __init__(self, data, lims=[[-20, 20], [0, 100]]):
+        """
+        Parameters
+        ----------
+        data : ndarray
+            The data required to evaluate the model likelihood.
+        mu_lims, si_lims : list of lists
+            Parameter limits. In normal case: limits for average and standard deviation.
+        
+        """
+        self.data = data
+        self.mu_low = lims[0][0]
+        self.mu_range = lims[0][1] - lims[0][0]
+        self.si_low = lims[1][0]
+        self.si_range = lims[1][1] - lims[1][0]
+
+    def logPosterior(self, X):
+        """            
+        """
+        return self.logLik(X) + self.logPrior(X)
+
+    def logLik(self, X):
+        return np.sum(np.log(scipy.stats.norm.pdf(self.data, X[0], X[1]))) 
+    
+    def logPrior(self, X):
+        return (np.log(scipy.stats.uniform.pdf(X[0], self.mu_low, self.mu_range)) 
+            + np.log(scipy.stats.uniform.pdf(X[1], self.si_low, self.si_range)))
+              

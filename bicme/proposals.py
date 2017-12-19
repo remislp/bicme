@@ -7,17 +7,16 @@ class RWMHProposal():
     Random-walk Metropoli-Hastings proposal step.
     """
     
-    def __init__(self, model, data, verbose=False):
+    def __init__(self, model, verbose=False):
         """
         Parameters
         ----------
         """
         self.model = model
-        self.data = data
         
     def __get_alpha(self, proposal, logLik0):
         try:
-            logLik = self.model(proposal, self.data)
+            logLik = self.model(proposal) #, self.data)
         except:
             logLik = float('nan')
         alpha = -float('inf')
@@ -27,7 +26,7 @@ class RWMHProposal():
     
     def __get_alpha_logpars(self, proposal, theta, logLik0):
         try:
-            logLik = self.model(proposal, self.data)
+            logLik = self.model(proposal) #, self.data)
         except:
             logLik = float('nan')
         alpha = -float('inf')
