@@ -6,6 +6,8 @@ import numpy as np
 class Chain(object):
     """Data structure to save MCMC sampling result."""
     def __init__(self, k, N, sample_type='block'):
+        self.k = k
+        self.N = N
         self.stype = sample_type
         self.proposals = np.zeros((k, N))
         self.samples = np.zeros((k, N))
