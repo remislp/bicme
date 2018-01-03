@@ -23,8 +23,8 @@ class DisplayResults(object):
         #self.k = len(self.S) # numer of parameters
         self.burnin = burnin
         self.names = names
-        self.imax = np.where(self.S.posteriors == self.S.posteriors.max())[0][0]
-        self.Xmax = self.S.samples[:, self.imax]
+        #self.imax = np.where(self.S.posteriors == self.S.posteriors.max())[0][0]
+        #self.Xmax = self.S.samples[:, self.imax]
         self.Snorm = self.S.samples / self.S.samples.max(axis=0)
         
         self.normalised = False
@@ -89,22 +89,22 @@ class DisplayResults(object):
         
     def __distribution(self, ax, ind):
         if self.normalised:
-            ax.hist(self.S.samples[ind, self.burnin:] / self.Xmax[ind], bins=self.binsnum)
+            ax.hist(self.S.samples[ind, self.burnin:] / self.S.MEP_samples[ind], bins=self.binsnum)
             ax.axvline(x=1, color='r')
         else:
             ax.hist(self.S.samples[ind, self.burnin:], bins=self.binsnum)
-            ax.axvline(x=self.Xmax[ind], color='r')
+            ax.axvline(x=self.S.MEP_samples[ind], color='r')
         if self.show_labels:
             ax.set_xlabel(self.names[ind])
             #ax.set_ylabel()
         
     def __chain(self, ax, ind):
         if self.normalised:
-            ax.plot(self.S.samples[ind] / self.Xmax[ind])
+            ax.plot(self.S.samples[ind] / self.S.MEP_samples[ind])
             ax.axhline(y=1, color='r')
         else:
             ax.plot(self.S.samples[ind])
-            ax.axhline(y=self.Xmax[ind], color='r')
+            ax.axhline(y=self.S.MEP_samples[ind], color='r')
         if self.show_labels:
             ax.set_xlabel('Step number')
             ax.set_ylabel(self.names[ind])
@@ -126,8 +126,8 @@ class DisplayResults(object):
     
     def __correlation(self, ax, ind, jnd):
         ax.plot(self.S.samples[ind, self.burnin:], self.S.samples[jnd, self.burnin:], '.')
-        ax.axvline(x=self.Xmax[ind], color='r')
-        ax.axhline(y=self.Xmax[jnd], color='r')
+        ax.axvline(x=self.S.MEP_samples[ind], color='r')
+        ax.axhline(y=self.S.MEP_samples[jnd], color='r')
         if self.show_labels:
             ax.set_xlabel(self.names[ind])
             ax.set_ylabel(self.names[jnd])
@@ -136,7 +136,7 @@ class DisplayResults(object):
 def quick_display(S, burnin=0):
     """    
     """
-    imax = np.where(S.posteriors == S.posteriors.max())[0][0]
+    imax = S.MEP_index
     fig = plt.figure(figsize = (8,S.k*3))
     for i in range(S.k):
         ax1 = fig.add_subplot(S.k, 2, 2*i+1)

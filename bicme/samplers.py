@@ -34,6 +34,30 @@ class Chain(object):
         self.samples[j, i] = theta0
         self.posteriors[j, i] = L0
         self.acceptances[j, i] = acceptance
+        
+    def _set_MEP_index(self):
+        self._MEP_index = self._get_MEP_index()
+    def _get_MEP_index(self):
+        return np.where(self.posteriors == self.posteriors.max())[-1][0]
+    MEP_index = property(_get_MEP_index, _set_MEP_index)
+    
+    def _set_MEP(self):
+        self._MEP = self._get_MEP()
+    def _get_MEP(self):
+        """
+        Maximal estimated posterior.
+        """
+        if self.stype == 'component':
+            return self.posteriors[-1, self.MEP_index]
+        elif self.stype == 'block':
+            return self.posteriors[self.MEP_index]
+    MEP = property(_get_MEP, _set_MEP)
+
+    def _set_MEP_samples(self):
+        self._MEP_samples = self._get_MEP_samples()
+    def _get_MEP_samples(self):
+        return self.samples[ : , self.MEP_index]
+    MEP_samples = property(_get_MEP_samples, _set_MEP_samples)
 
 
 class Sampler(object):
@@ -78,7 +102,7 @@ class Sampler(object):
     def do_print(self, i):
         if i % self.M == 0 and self.verbose:
             print (100 * i / float(self.N), '%')
-
+            
     def sample(self, theta):
         """
         theta - starting values for the parameters
