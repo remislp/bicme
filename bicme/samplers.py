@@ -235,7 +235,7 @@ class RosenthalAdaptiveSampler(Sampler):
             # Update covariance matrix
             if i+1 >= start_adaption:
                 need_mixture = True
-                mass_matrix = np.cov(np.array(self.samples)[ : i-1, : ].T) * scale_factor
+                mass_matrix = np.cov(np.array(chain.samples)[ : i-1, : ].T) * scale_factor
             else:
                 mass_matrix = np.identity(self.k) * scale_factor
             # Get proposal
@@ -249,7 +249,7 @@ class RosenthalAdaptiveSampler(Sampler):
             
             if ((i+1) % self.lag == 0) and (i < self.B):
                 acceptance_proportion = (np.sum(
-                    self.acceptances[i - self.lag + 1 : i + 1]) / self.lag)
+                    chain.acceptances[i - self.lag + 1 : i + 1]) / self.lag)
                 scale_factor = self.tune_scale(scale_factor, acceptance_proportion, i)
             self.do_print(i+1)
         return chain
