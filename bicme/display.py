@@ -125,7 +125,8 @@ class DisplayResults(object):
         ax.set_title(self.names[ind])
     
     def __correlation(self, ax, ind, jnd):
-        ax.plot(self.S.samples[ind, self.burnin:], self.S.samples[jnd, self.burnin:], '.')
+        ax.plot(self.S.proposals[ind, self.burnin:], self.S.samples[jnd, self.burnin:], 'b.')
+        ax.plot(self.S.samples[ind, self.burnin:], self.S.samples[jnd, self.burnin:], 'r.')
         ax.axvline(x=self.S.MEP_samples[ind], color='r')
         ax.axhline(y=self.S.MEP_samples[jnd], color='r')
         if self.show_labels:

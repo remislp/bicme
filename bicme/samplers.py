@@ -99,7 +99,7 @@ class Sampler(object):
         print('Sampler initialised...')
         
     def do_print(self, i):
-        if i % self.M == 0 and self.verbose:
+        if i % self.M == 0: # and self.verbose:
             print (100 * i / float(self.N), '%')
             
     def sample(self, theta):
@@ -136,7 +136,7 @@ class Sampler(object):
         elif acceptance_proportion > self.acceptance_limits[1]:
             scale_factor *= 1 + self.scale
             message = 'increased'
-        print("Iteration {0:d}; Acceptance: {1:.6f}; Scale factor {2:.6f}: {3}".
+        if self.verbose: print("Iteration {0:d}; Acceptance: {1:.6f}; Scale factor {2:.6f}: {3}".
                 format(i+1, acceptance_proportion, scale_factor, message))
         return scale_factor
 
@@ -172,6 +172,7 @@ class MWGSampler(Sampler):
                     chain.acceptances[i - self.lag + 1 : i + 1]) / self.lag)
                 scale_factor = self.tune_scale(scale_factor, acceptance_proportion, i)
             self.do_print(i+1)
+        print('Sampling finished...')
         return chain
         
     def sample_component(self, theta):
@@ -200,6 +201,7 @@ class MWGSampler(Sampler):
                         chain.acceptances[j, i - self.lag + 1 : i + 1]) / (self.lag))
                     scale_factor[j] = self.tune_scale(scale_factor[j], acceptance_proportion, i)
             self.do_print(i+1)  
+        print('Sampling finished...')
         return chain
 
     
@@ -252,4 +254,5 @@ class RosenthalAdaptiveSampler(Sampler):
                     chain.acceptances[i - self.lag + 1 : i + 1]) / self.lag)
                 scale_factor = self.tune_scale(scale_factor, acceptance_proportion, i)
             self.do_print(i+1)
+        print('Sampling finished...')
         return chain
