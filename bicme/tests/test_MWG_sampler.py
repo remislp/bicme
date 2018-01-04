@@ -100,7 +100,7 @@ class TestRosenthalAdaptiveSamplerMixture:
         mat1 = sio.loadmat('../BICME/Tests/Data/NormData.mat')
         data = np.array(mat1['data']).flatten()
         cn = CaseNormal(data)
-        X0 = [2, 10]
+        X0 = [1, 12]
         
         # Initialise Proposer
         proposer = RWMHProposal(cn.logPosterior, verbose=True)                      
@@ -111,8 +111,8 @@ class TestRosenthalAdaptiveSamplerMixture:
                             verbose=True)
                          
         sampler.acceptance_limits = [0.3, 0.7]
-        sampler.scale = 0.5
-        np.random.seed(1)
+        sampler.scale = 0.01
+        np.random.seed(2)
         self.S = sampler.sample_block(X0)
 
     def tearDown(self):
@@ -122,21 +122,21 @@ class TestRosenthalAdaptiveSamplerMixture:
         assert self.S.N == 10
         
     def test_acceptances(self):
-        np.testing.assert_array_equal(self.S.acceptances, np.array([ 0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  1.]))
+        np.testing.assert_array_equal(self.S.acceptances, np.array([ 1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]))
         
     def test_samples(self):
         np.testing.assert_allclose(self.S.samples, 
-            [[  2.      ,   1.197827,   1.197827,   1.197827,   1.197827,
-            0.969844,   0.969844,   0.969844,   0.191588,   0.829109],
-            [ 10.      ,   9.551122,   9.551122,   9.551122,   9.551122,
-            9.279555,   9.279555,   9.279555,  10.088997,  10.444314]],
+            [[  0.326148,  -2.539362,  -2.539362,  -2.539362,  -2.539362,
+            -2.539362,  -2.539362,  -2.539362,  -2.539362,  -2.539362],
+            [ 11.915842,  10.56568 ,  10.56568 ,  10.56568 ,  10.56568 ,
+            10.56568 ,  10.56568 ,  10.56568 ,  10.56568 ,  10.56568 ]],
             rtol=1e-05)
     
     def test_posteriors(self):
         np.testing.assert_allclose(self.S.posteriors, 
-            [-1125.999436, -1121.863417, -1121.863417, -1121.863417,
-            -1121.863417, -1121.695805, -1121.695805, -1121.695805,
-            -1118.764857, -1121.048132],
+            [-1128.819306, -1126.841037, -1126.841037, -1126.841037,
+            -1126.841037, -1126.841037, -1126.841037, -1126.841037,
+            -1126.841037, -1126.841037],
             rtol=1e-05)
         
         
