@@ -6,7 +6,7 @@ from bicme.samplers import RosenthalAdaptiveSampler
 from bicme.proposals import RWMHProposal
 from bicme.tests.case_normal import CaseNormal
 
-class TestMWGSamplerBlock:
+class TestRegressionMWGSamplerBlock:
     def setUp(self):
         mat1 = sio.loadmat('../BICME/Tests/Data/NormData.mat')
         data = np.array(mat1['data']).flatten()
@@ -50,7 +50,7 @@ class TestMWGSamplerBlock:
             rtol=1e-05)
 
 
-class TestMWGSamplerComponent:
+class TestRegressionMWGSamplerComponent:
     def setUp(self):
         mat1 = sio.loadmat('../BICME/Tests/Data/NormData.mat')
         data = np.array(mat1['data']).flatten()
@@ -94,8 +94,7 @@ class TestMWGSamplerComponent:
         self.S = None
 
 
-
-class TestRosenthalAdaptiveSamplerMixture:
+class TestRegressionRosenthalAdaptiveSamplerMixture:
     def setUp(self):
         mat1 = sio.loadmat('../BICME/Tests/Data/NormData.mat')
         data = np.array(mat1['data']).flatten()
