@@ -1,5 +1,4 @@
 from math import sqrt, exp, log, pow, isnan, isinf
-import random
 import numpy as np
 
 class RWMHProposal():
@@ -47,12 +46,12 @@ class RWMHProposal():
     
     def propose_component(self, theta, logLik0,  scale, ip):
         proposal = theta.copy()
-        proposal[ip] = random.normalvariate(theta[ip], scale[ip])
+        proposal[ip] = np.random.normal(theta[ip], scale[ip])
         return self.__get_alpha(proposal, logLik0)
         
     def propose_component_log(self, theta, logLik0, scale, ip):
         proposal = theta.copy()
-        proposal[ip] = exp(random.normalvariate(log(theta[ip]), scale[ip]))
+        proposal[ip] = exp(np.random.normal(log(theta[ip]), scale[ip]))
         return self.__get_alpha_logpars(proposal, theta, logLik0)
         
     def propose_block_mixture(self, theta, logLik0, mass_matrix, ip=None, need_mixture=True):

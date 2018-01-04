@@ -1,5 +1,4 @@
 from math import log
-from random import random
 import numpy as np
 
 
@@ -121,7 +120,7 @@ class Sampler(object):
                 except:
                     Lp = float('inf')
                 alpha = min(1, np.exp(Lp-L0))
-                if random() < alpha:
+                if np.random.rand() < alpha:
                     theta0, L0 = thetaP, Lp
                     is_accepted = 1
             
@@ -162,7 +161,7 @@ class MWGSampler(Sampler):
             is_accepted = 0
             # Get proposal and check alpha
             alpha, thetaP, Lp = self.proposal(theta0, L0, scale_factor, None)
-            if alpha == 0 or alpha > log(random()):
+            if alpha == 0 or alpha > log(np.random.rand()):
                 is_accepted = 1
                 theta0, L0 = thetaP, Lp
             chain.insert_sample_block(i, 
@@ -190,7 +189,7 @@ class MWGSampler(Sampler):
             for j in range(self.k):
                 is_accepted = 0
                 alpha, thetaP, Lp = self.proposal(theta0, L0, scale_factor, j)
-                if alpha == 0 or alpha > log(random()):
+                if alpha == 0 or alpha > log(np.random.rand()):
                     is_accepted = 1
                     theta0, L0 = thetaP, Lp
                 chain.insert_sample_component(i, j, 
@@ -242,7 +241,7 @@ class RosenthalAdaptiveSampler(Sampler):
             # Get proposal
             alpha, thetaP, Lp = self.proposal(theta0, L0, mass_matrix, need_mixture)
             # Check alpha
-            if alpha == 0 or alpha > log(random()):
+            if alpha == 0 or alpha > log(np.random.rand()):
                 is_accepted = 1
                 theta0, L0 = thetaP, Lp
             chain.insert_sample_block(i, 

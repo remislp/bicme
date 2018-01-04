@@ -7,68 +7,91 @@ from bicme.samplers import MWGSampler
 from bicme.proposals import RWMHProposal
 from bicme.tests.case_normal import CaseNormal
 
-class TestMWGSampler:
+class TestMWGSamplerBlock:
     def setUp(self):
         mat1 = sio.loadmat('../BICME/Tests/Data/NormData.mat')
         data = np.array(mat1['data']).flatten()
-        self.cn = CaseNormal(data)
-        self.X0 = [2, 10]
+        cn = CaseNormal(data)
+        X0 = [2, 10]
         
-    def tearDown(self):
-        pass
-
-    def test_normal_block(self):
         # Initialise Proposer
-        proposer = RWMHProposal(self.cn.logPosterior, verbose=True)
+        proposer = RWMHProposal(cn.logPosterior, verbose=True)
         sampler = MWGSampler(samples_draw=10, notify_every=1, 
                          burnin_fraction=0.5, burnin_lag=5,
-                         model=self.cn.logPosterior,  
+                         model=cn.logPosterior,  
                          proposal=proposer.propose_block,
                          verbose=True)  
         sampler.acceptance_limits = [0.3, 0.7]
         sampler.scale = 0.5
-        #np.random.seed(1)
-        S = sampler.sample_block(self.X0)
-        assert sampler.N == 10
-        print('acceptances= ', sampler.acceptances)
-#        np.testing.assert_array_equal(sampler.acceptances, np.array([ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  1.]))
-#        np.testing.assert_allclose(sampler.samples, 
-#            [np.array([    2.        ,    10.        , -1125.99943572]), 
-#             np.array([    2.        ,    10.        , -1125.99943572]), 
-#             np.array([    2.        ,    10.        , -1125.99943572]), 
-#             np.array([    2.        ,    10.        , -1125.99943572]), 
-#             np.array([    2.        ,    10.        , -1125.99943572]), 
-#             np.array([    2.        ,    10.        , -1125.99943572]), 
-#             np.array([    1.77201661,     9.72843256, -1124.74956645]), 
-#             np.array([    1.77201661,     9.72843256, -1124.74956645]), 
-#             np.array([    1.77201661,     9.72843256, -1124.74956645]), 
-#             np.array([    1.80186624,    10.14054515, -1124.77280787])],  
-#             rtol=1e-07)
+        np.random.seed(1)
+        self.S = sampler.sample_block(X0)
+        
+    def tearDown(self):
+        self.S = None
 
-    def test_normal_component(self):
+    def test_sample_number(self):
+        assert self.S.N == 10
+        
+    def test_acceptances(self):
+        np.testing.assert_array_equal(self.S.acceptances, np.array([ 0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  1.]))
+        
+    def test_samples(self):
+        np.testing.assert_allclose(self.S.samples, 
+            [[  2.      ,   1.197827,   1.197827,   1.197827,   1.197827,
+            0.969844,   0.969844,   0.969844,   0.191588,   0.829109],
+            [ 10.      ,   9.551122,   9.551122,   9.551122,   9.551122,
+            9.279555,   9.279555,   9.279555,  10.088997,  10.444314]],
+            rtol=1e-05)
+    
+    def test_posteriors(self):
+        np.testing.assert_allclose(self.S.posteriors, 
+            [-1125.999436, -1121.863417, -1121.863417, -1121.863417,
+            -1121.863417, -1121.695805, -1121.695805, -1121.695805,
+            -1118.764857, -1121.048132],
+            rtol=1e-05)
+
+
+class TestMWGSamplerComponent:
+    def setUp(self):
+        mat1 = sio.loadmat('../BICME/Tests/Data/NormData.mat')
+        data = np.array(mat1['data']).flatten()
+        cn = CaseNormal(data)
+        X0 = [2, 10]
+
         # Initialise Proposer
-        proposer = RWMHProposal(self.cn.logPosterior, verbose=True)
+        proposer = RWMHProposal(cn.logPosterior, verbose=True)
         sampler = MWGSampler(samples_draw=5, notify_every=1, 
                          burnin_fraction=0.5, burnin_lag=3,
-                         model=self.cn.logPosterior,  
+                         model=cn.logPosterior,  
                          proposal=proposer.propose_component,
                          verbose=True)  
         sampler.acceptance_limits = [0.3, 0.7]
         sampler.scale = 0.5
-        #np.random.seed(1)
-        S = sampler.sample_component(self.X0)
-        assert sampler.N == 5
-        print('acceptances= ', sampler.acceptances)
-#        np.testing.assert_array_equal(sampler.acceptances, 
-#            np.array([[ 0.,  0.,  0.,  1.,  1.], [ 0.,  0.,  1.,  0.,  1.]]))
-        print('samples= ', sampler.samples)
-#        np.testing.assert_allclose(sampler.samples, 
-#            [np.array([    2.        ,    10.        , -1125.99943572]), 
-#             np.array([    2.        ,    10.        , -1125.99943572]), 
-#             np.array([    2.        ,     9.8623926 , -1126.09264797]), 
-#             np.array([    1.78865897,     9.8623926 , -1124.68717786]), 
-#             np.array([    1.69108142,    10.13314303, -1124.11683614])],  
-#             rtol=1e-07)
+        np.random.seed(1)
+        self.S = sampler.sample_component(X0)
+        
+    def test_sample_number(self):
+        assert self.S.N == 5
+    
+    def test_acceptances(self):
+        np.testing.assert_array_equal(self.S.acceptances, 
+            np.array([[ 0.,  1.,  1.,  1.,  1.], [ 0.,  0.,  0.,  1.,  0.]]))
+            
+    def test_samples(self):
+        np.testing.assert_allclose(self.S.samples, 
+            [[  2.      ,   1.471828,  -0.89164 ,  -0.572601,   0.889507],
+            [ 10.      ,  10.      ,  10.      ,   9.75063 ,   9.75063 ]],  
+            rtol=1e-05)
+             
+    def test_posteriors(self):
+        np.testing.assert_allclose(self.S.posteriors, 
+            [[-1125.999436, -1122.833978, -1118.920605, -1118.470482,
+            -1120.278702],
+            [-1125.999436, -1122.833978, -1118.920605, -1118.339701,
+            -1120.278702]],  
+            rtol=1e-05)
   
+    def tearDown(self):
+        self.S = None
 
 
