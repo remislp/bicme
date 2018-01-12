@@ -3,6 +3,7 @@
 import math
 import numpy as np
 import scipy.stats
+import scipy.io as sio
 
 def calculate_autocorrelation(X):
     """ """
