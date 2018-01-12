@@ -18,6 +18,26 @@ def calculate_KDE(X):
     d._compute_covariance()
     return x, d(x)
 
+def load_bursts_from_matfile(fmat):
+    """Load bursts from Matlab .mat file."""
+    mat = sio.loadmat(fmat)
+    conc = [item for sublist in mat['concs'] for item in sublist]
+    tr = [item for sublist in mat['tres'] for item in sublist]
+    tc = [item for sublist in mat['tcrit'] for item in sublist]
+    chs = [item for sublist in mat['useChs'] for item in sublist]
+    for i in range(len(chs)):
+        if chs[i] < 1:
+            tc[i] *= -1
+    mb = mat['bursts'].tolist()[0]
+    bursts = []
+    for i in range(len(mb)):
+        rec = []
+        rb = mb[i][0]
+        for arr in rb:
+            rec.append(arr[0].tolist())
+        bursts.append(rec)
+    return bursts, conc, tr, tc
+
 
 class CaseHJCFIT(object):
     """
