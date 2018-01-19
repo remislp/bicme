@@ -5,6 +5,11 @@ import numpy as np
 import scipy.stats
 import scipy.io as sio
 
+try:
+    from HJCFIT.likelihood import Log10Likelihood
+except:
+    raise ImportError("HJCFIT module is missing")
+
 def calculate_autocorrelation(X):
     """ """
     X = X - np.mean(X)
@@ -44,21 +49,26 @@ class CaseHJCFIT(object):
     """
     HJCFIT model.  Provide log poterior function for MCMC sampling.
     """
-    def __init__(self, args):
+    def __init__(self, bursts, conc, tres, tcrit, mec):
         """
         Parameters
         ----------
-        args : tuple
-            Contains list of HJCFIT likelihoods for each record, object of
-            type dcpyps.Mechanism and list of concentrations:
-            lik : list of objects
-                Likelihoods of type HJCFIT.Log10Likelihood
-            mec : object
-                DCPYPS mechanism.
-            c : list of floats
-                Concentrations for each record.
+        bursts : list of list of floats
+            List of bursts.
+        conc : list of floats
+            Concentrations for each record.
+        tres : list of floats
+            Imposed temporal resolution.
+        tcrit : list of floats
+            Critical time interval to separate bursts.
+        mec : object
+            DCPYPS mechanism.
         """
-        self.lik, self.mec, self.c = args
+        self.bursts, self.c, self.tr, self.tc = bursts, conc, tres, tcrit
+        self.mec = mec
+        self.kwargs = {'nmax': 2, 'xtol': 1e-12, 'rtol': 1e-12, 'itermax': 100,
+            'lower_bound': -1e6, 'upper_bound': 0}
+        self.lik = self.HJCFITLogLik()
 
     def logPosterior(self, X):
         return self.logLik(X) + self.logPrior(X)
@@ -91,5 +101,10 @@ class CaseHJCFIT(object):
             self.mec.set_eff('c', self.conc[i])
             l += -self.lik[i](self.mec.Q) * math.log(10)
         return l
-
-
+    
+    def HJCFITLogLik(self):
+        likelihood = []
+        for i in range(len(self.bursts)):
+            likelihood.append(Log10Likelihood(self.bursts[i], self.mec.kA,
+                self.tr[i], self.tc[i], **self.kwargs))
+        return likelihood
