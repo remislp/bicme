@@ -76,7 +76,7 @@ class CaseHJCFIT(object):
     def logLik(self, X):
         """Calculate total log likelihood."""
         self.mec.theta_unsqueeze(X)
-        l = 0
+        l = 0.0
         try:
             for i in range(len(self.c)):
                 self.mec.set_eff('c', self.c[i])
@@ -93,14 +93,6 @@ class CaseHJCFIT(object):
                 lp += math.log(scipy.stats.uniform.pdf(rate.unit_rate(), 
                       rate.limits[0][0], rate.limits[0][1]))
         return lp
-
-    def MLL_logLik(self, X):
-        self.mec.theta_unsqueeze(np.exp(X))
-        l = 0.0
-        for i in range(len(self.conc)):
-            self.mec.set_eff('c', self.conc[i])
-            l += -self.lik[i](self.mec.Q) * math.log(10)
-        return l
     
     def HJCFITLogLik(self):
         likelihood = []
