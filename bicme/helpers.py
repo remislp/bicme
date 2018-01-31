@@ -8,7 +8,7 @@ import scipy.io as sio
 try:
     from HJCFIT.likelihood import Log10Likelihood
 except:
-    raise ImportError("HJCFIT module is missing")
+    print("bicme: Warning: HJCFIT module is missing")
 
 def calculate_autocorrelation(X):
     """ """

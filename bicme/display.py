@@ -1,5 +1,9 @@
+#!/usr/bin/python
+
 import numpy as np
 import pylab as plt
+
+import bicme.helpers
 
 class DisplayResults(object):
     """
@@ -10,11 +14,11 @@ class DisplayResults(object):
         """
         Parameters
         ----------
-        samples : array like
-            All samples containing parameters and posterior function value.
+        chain : Chain type instance
+            Object containing all MCMC samples, proposals, posteriors, etc.
         burnin : int
             Number of samples in burn-in phase.
-        labels : list of strings
+        names : list of strings
             Parameters' names.
         """
         
@@ -109,16 +113,11 @@ class DisplayResults(object):
             ax.set_xlabel('Step number')
             ax.set_ylabel(self.names[ind])
             
-    def __calculate_autocorrelation(self, X):
-        X = X - np.mean(X)
-        acf = np.correlate(X, X, mode='full')
-        return acf[int(acf.size/2) : ] / acf[int(acf.size / 2)]
-            
-    def __autocorrelation(self, ax, ind):
-        ax.plot(self.__calculate_autocorrelation(self.S.samples[ind, self.burnin:]))
+    def __autocorrelation(self, ax, ind, xlims=(0,100)):
+        ax.plot(bicme.helpers.calculate_autocorrelation(self.S.samples[ind, self.burnin:]))
         ax.set_ylim(-1, 1)
         ax.axhline(y=0, color='k')
-        #ax.set_xlim(0, 400)
+        ax.set_xlim(xlims)
         if self.show_labels:
             ax.set_xlabel('Lag')
             ax.set_ylabel('Autocorrelation')
