@@ -71,7 +71,7 @@ class CaseHJCFIT(object):
         self.lik = self.HJCFITLogLik()
 
     def logPosterior(self, X):
-        return self.logLik(X) + self.logPrior(X)
+        return -self.logLik(X) + self.logPrior(X)
 
     def logLik(self, X):
         """Calculate total log likelihood."""
@@ -80,10 +80,10 @@ class CaseHJCFIT(object):
         try:
             for i in range(len(self.c)):
                 self.mec.set_eff('c', self.c[i])
-                l += self.lik[i](self.mec.Q)
+                l -= self.lik[i](self.mec.Q)
             return l * math.log(10)
         except:
-            return -float('inf')
+            return float('inf')
 
     def logPrior(self, X):
         """ """
