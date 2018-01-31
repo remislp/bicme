@@ -7,4 +7,5 @@ BICME.egg-info/
 *.pyc
 *.bat
 *.csv
-/.ipynb_checkpoints
+bicme/.ipynb_checkpoints
+bicme/Notebooks/.ipynb_checkpoints
