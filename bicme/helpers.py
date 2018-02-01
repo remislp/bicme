@@ -69,13 +69,17 @@ class CaseHJCFIT(object):
         self.kwargs = {'nmax': 2, 'xtol': 1e-12, 'rtol': 1e-12, 'itermax': 100,
             'lower_bound': -1e6, 'upper_bound': 0}
         self.lik = self.HJCFITLogLik()
+        self.logSpace = False
 
     def logPosterior(self, X):
         return -self.logLik(X) + self.logPrior(X)
 
     def logLik(self, X):
         """Calculate total log likelihood."""
-        self.mec.theta_unsqueeze(X)
+        if self.logSpace:
+            self.mec.theta_unsqueeze(np.exp(X))
+        else:
+            self.mec.theta_unsqueeze(X)
         l = 0.0
         try:
             for i in range(len(self.c)):
