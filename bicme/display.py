@@ -39,6 +39,10 @@ class DisplayResults(object):
         """ Display the parameters in a chain."""
         self.__general_figure(self.__chain, ind)
         
+    def chain_log_posterior(self, ind=None):
+        """ Display a chain of log-posterior."""
+        self.__general_figure_single(self.__chain_log_posterior)
+        
     def distributions(self, ind=None):
         self.__general_figure(self.__distribution, ind)
                               
@@ -81,7 +85,7 @@ class DisplayResults(object):
         """  Displays a selected parameter indicated by ind or, if ind=None,
         displays chains of all parameters and the posterior function value.
         """
-        fig = plt.figure(figsize = (6,self.S.k*3))
+        fig = plt.figure(figsize = (6, self.S.k*3))
         if ind is None:
             for i in range(self.S.k):
                 ax = fig.add_subplot(self.S.k, 1, i+1)
@@ -89,6 +93,15 @@ class DisplayResults(object):
         else:
             ax = fig.add_subplot(1, 1, 1)
             plot_type(ax, ind)
+        plt.show()
+    
+    def __general_figure_single(self, plot_type):
+        """  Displays a selected parameter indicated by ind or, if ind=None,
+        displays chains of all parameters and the posterior function value.
+        """
+        fig = plt.figure(figsize = (6, 3))
+        ax = fig.add_subplot(1, 1, 1)
+        plot_type(ax)
         plt.show()
         
     def __distribution(self, ax, ind):
@@ -101,6 +114,17 @@ class DisplayResults(object):
         if self.show_labels:
             ax.set_xlabel(self.names[ind])
             #ax.set_ylabel()
+            
+    def __chain_log_posterior(self, ax):
+        #fig, ax  = plt.subplots(1,1, figsize=(9,3))
+        if self.S.posteriors.ndim == 1:
+            ax.plot(self.S.posteriors, '-')
+        elif self.S.posteriors.ndim == 2:
+            ax.plot(self.S.posteriors[-1], '-')
+        #ax.axhline(y=S1[-1].max(), color='r')
+        ax.set_xlabel('Iteration')
+        ax.set_ylabel('Log-Posterior')
+        #ax.set_ylim(327500, 328000)
         
     def __chain(self, ax, ind):
         if self.normalised:
@@ -115,7 +139,7 @@ class DisplayResults(object):
             
     def __autocorrelation(self, ax, ind, xlims=(0,100)):
         ax.plot(bicme.helpers.calculate_autocorrelation(self.S.samples[ind, self.burnin:]))
-        ax.set_ylim(-1, 1)
+        ax.set_ylim(0, 1)
         ax.axhline(y=0, color='k')
         ax.set_xlim(xlims)
         if self.show_labels:

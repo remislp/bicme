@@ -50,7 +50,9 @@ def load_bursts_from_matfile(fmat):
         bursts.append(rec)
     return bursts, conc, tr, tc
 
-def sample_MWG(log_posterior, theta, N=100000, sample_comp=True):
+def sample_MWG(log_posterior, theta, 
+               N=100000, burninfrac=0.5, burnlag=50, 
+               sample_comp=True):
     """
     Run Metropolis_within_Gibbs (MWG) sampling component- or block-wise.
     """
@@ -62,10 +64,9 @@ def sample_MWG(log_posterior, theta, N=100000, sample_comp=True):
         print('Sampling block...')
         proposal=proposer.propose_block_log
     sampler = MWGSampler(samples_draw=N, notify_every=int(N/100), 
-                             burnin_fraction=0.5, burnin_lag=50,
-                             model=log_posterior, #data=args, 
-                             proposal=proposal, 
-                             verbose=True) 
+                         burnin_fraction=burninfrac, burnin_lag=burnlag,
+                         model=log_posterior, proposal=proposal, 
+                         verbose=True) 
     print ("\nInitial posterior = {0:.6f}".format(log_posterior(theta)))
     start = time.clock()
     if sample_comp:
@@ -75,13 +76,13 @@ def sample_MWG(log_posterior, theta, N=100000, sample_comp=True):
     print ('\nCPU time in MWG sampler =', time.clock() - start)
     return chain
 
-def sample_RA(log_posterior, theta, N=100000):
+def sample_RA(log_posterior, theta, N=100000, burninfrac=0.5, burnlag=50):
     """
     Run Rosenthal adaptive sampling with mixture proposal.
     """
     proposer = RWMHProposal(log_posterior, verbose=True)
     sampler = RosenthalAdaptiveSampler(samples_draw=N, notify_every=int(N/100), 
-                         burnin_fraction=0.5, burnin_lag=50,
+                         burnin_fraction=burninfrac, burnin_lag=burnlag,
                          model=log_posterior, #data=args, 
                          proposal=proposer.propose_block_mixture,
                          verbose=True)
